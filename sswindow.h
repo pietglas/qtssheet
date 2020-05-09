@@ -2,6 +2,8 @@
  *
  * TODO:
  * - display formulae somewhere
+ * - deal properly with the case where an empty formula
+ *	 is entered, or even just a number as formula. 
  */
 
 #pragma once

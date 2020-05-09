@@ -13,6 +13,7 @@
 #include <QString>
 #include <QVector>
 #include <QPair>
+#include <QSet>
 #include <QObject>
 #include <QMap>
 
@@ -51,6 +52,8 @@ private:
 	int rows_;
 	int cols_;
 	QMap<QString, QPair<QVariant,QString>> data_;
+	QMap<QString, QSet<QString>> depends_on_;
+	QMap<QString, QSet<QString>> has_effect_on_;
 	QString alph_ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";	// for column index
 
 	// converts displayed index (i.e. `A2`) to model index (i.e. `<1, 0>`)
@@ -59,6 +62,11 @@ private:
 	QString convertIndexToStr(const QPair<int, int> & index) const;
 	// calculate a formula.
 	double calculateFormula(std::shared_ptr<Expression> formula);
+	// checks if a formula causes circular dependencies to occur
+	bool checkCircularity(const QString & lhs, 
+					const QSet<QString> & indices_rhs);
+	// updates dependent values
+	void updateDependentValues(const QString & index);
 
 signals:
 	

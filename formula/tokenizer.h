@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QVector>
+#include <QSet>
 #include <QString>
 #include <QChar>
 #include <set>
@@ -14,8 +15,10 @@ public:
 	// tokenizes a string. Returns false if the string 
 	// contains invalid tokens. 
 	bool tokenize(const QString & formula);
-	// check if the formula is syntactically valid
-	bool validate() const;
+	// check if the formula is syntactically valid. Returns a vector
+	// with the indexes on rhs if the formula is valid, otherwise it
+	// returns an empty vector. 
+	QSet<QString> validate() const;
 	// returns the vector with tokens.
 	QVector<QString> tokenized() const;
 private:
