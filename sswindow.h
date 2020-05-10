@@ -13,6 +13,7 @@
 #include <QString>
 #include <QWidget>
 #include <QToolBar>
+#include <QStatusBar>
 #include <QAction>
 #include "ssview.h"
 #include "ssmodel.h"
@@ -35,6 +36,7 @@ public slots:
 	void clear();
 	void showWindowTitle(const QString & title);
 	void addFormula();
+	void showFormula();	// Doesn't work yet
 protected:
 	void setupMenuBar();
 	void createActions();

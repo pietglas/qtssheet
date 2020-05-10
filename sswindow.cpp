@@ -5,6 +5,7 @@
 #include "ssmodel.h"
 #include <QObject>
 #include <QMenu>
+#include <QDebug>
 #include <QMenuBar>
 #include <QAction>
 #include <QCoreApplication>
@@ -12,6 +13,7 @@
 #include <QDir>
 #include <QLineEdit>
 #include <QRect>
+#include <QErrorMessage>
 #include <QStyle>
 #include <QKeySequence>
 #include <QDesktopWidget>
@@ -32,6 +34,10 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	// create actions, set up menu bar
 	createActions();
 	setupMenuBar();
+	
+	statusBar();		// Doesn't work yet
+	connect(sheetview_, &SSView::getSelectedIndex, 
+			this, &SSWindow::showFormula);
 }
 
 SSWindow::~SSWindow() {
@@ -80,7 +86,15 @@ void SSWindow::addFormula() {
 	QString formula = QInputDialog::getText(this, tr("Enter Formula"),
 						tr("Enter Formula"), QLineEdit::Normal,
 						QDir::home().dirName(), &ok);
-	sheetmodel_->setFormula(formula);
+	if (!(sheetmodel_->setFormula(formula))) {
+		QErrorMessage error(this);
+		error.showMessage("Invalid syntax or circular dependency");
+		error.exec();
+	}
+}
+
+void SSWindow::showFormula() {
+	statusBar()->showMessage("1000");	// Doesn't work yet
 }
 
 void SSWindow::createActions() {

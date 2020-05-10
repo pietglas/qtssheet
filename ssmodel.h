@@ -1,8 +1,8 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - parse input for dependencies
- * - in case of invalid formula input, give feedback
+ * - saved formula should be tokenized, for efficiency
+ * - update dependencies when loading data from file
  */
 
 #pragma once

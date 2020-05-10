@@ -184,9 +184,7 @@ bool SSModel::setFormula(const QString & formula) {
 				
 				return true;
 			}
-			return false;
 		}
-		return false;
 	}
 	return false;
 }
