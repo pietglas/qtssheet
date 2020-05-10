@@ -151,30 +151,36 @@ bool SSModel::saveData(const QString & file_name) const {
 bool SSModel::setFormula(const QString & formula) {
 	Tokenizer tokenizer;
 	if (tokenizer.tokenize(formula)) {	// turn string into vector of tokens
-		QVector<QString> indices = tokenizer.validate();
+		QSet<QString> indices = tokenizer.validate();
+		qDebug() << indices;
 		if (!indices.empty()) {	// check for correct syntax
 			// update existing formula or add a new one
 			QString key = tokenizer.tokenized()[0];
-			QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
 
-			// get formula without lhs
-			QString without_lhs;
-			int pos = 0;
-			while (formula[pos] != '=')
+			// check for circularity
+			if (!checkCircularity(key, indices)) {
+				qDebug() << "formula does not cause circular dependencies";
+				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
+				// get formula without lhs
+				QString without_lhs;
+				int pos = 0;
+				while (formula[pos] != '=')
+					++pos;
 				++pos;
-			++pos;
-			while (formula[pos] == ' ')
-				++pos;
-			without_lhs = formula.mid(pos, -1);
+				while (formula[pos] == ' ')
+					++pos;
+				without_lhs = formula.mid(pos, -1);
 
-			// set data displayed
-			auto formula_ptr = std::make_shared<Expression>(tokens);
-			double val = SSModel::calculateFormula(formula_ptr);
-			QPair<QVariant, QString> value = qMakePair(val, without_lhs);
+				// set data displayed
+				auto formula_ptr = std::make_shared<Expression>(tokens);
+				double val = SSModel::calculateFormula(formula_ptr);
+				QPair<QVariant, QString> value = qMakePair(val, without_lhs);
 
-			data_.insert(key, value);
-			
-			return true;
+				data_.insert(key, value);
+				
+				return true;
+			}
+			return false;
 		}
 		return false;
 	}
@@ -226,26 +232,30 @@ QString SSModel::convertIndexToStr(const QPair<int, int> & index) const {
 	return dindex;
 }
 
-bool checkCircularity(const QString & lhs, 
+bool SSModel::checkCircularity(const QString & lhs, 
 					const QSet<QString> & indices_rhs) {
 	QMap<QString, QSet<QString>> new_depends = depends_on_;
 	new_depends.insert(lhs, indices_rhs);
-	return checkCircularityHelper(lhs, lhs, indices_rhs);
+	if (!SSModel::checkCircularityHelper(lhs, lhs, indices_rhs)) {
+		depends_on_ = new_depends;
+		return false;
+	}
+	return true;
 }
 
-bool checkCircularityHelper(const QString & lhs, const QString & index,
+bool SSModel::checkCircularityHelper(const QString & lhs, const QString & index,
 	const QSet<QString> & depends_on) {
 	// see if current index depends on lhs
 	if (depends_on.contains(lhs))
 		return true;
 	for (auto ind : depends_on) {
-		if (checkCircularityHelper(lhs, ind, depends_on_[ind]))
+		if (SSModel::checkCircularityHelper(lhs, ind, depends_on_[ind]))
 			return true;
 	}
 	return false;
 }
 
-void updateDependentValues(const QString & index) {
+void SSModel::updateDependentValues(const QString & index) {
 
 }
 

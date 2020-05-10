@@ -50,7 +50,7 @@ bool Tokenizer::tokenize(const QString & formula) {
 	return true;
 }
 
-QVector<QString> Tokenizer::validate() const { 
+QSet<QString> Tokenizer::validate() const { 
 	QSet<QString> indices;
 	QSet<QString> emptyset;
 	int leftbrace_count = 0;
@@ -84,11 +84,11 @@ QVector<QString> Tokenizer::validate() const {
 			// if the token is an index, add it to indices for later use
 			bool ok;
 			double index_or_nr = tokenized_[pos].toDouble(&ok);
-			if (!ok)
+			if (!ok && pos != 0)
 				indices.insert(tokenized_[pos]);
 		}
 	}
-	return true;
+	return indices;
 }
 
 QVector<QString> Tokenizer::tokenized() const {
