@@ -2,6 +2,7 @@
  *
  * TODO:
  * - parse input for dependencies
+ * - in case of invalid formula input, give feedback
  */
 
 #pragma once
@@ -65,7 +66,7 @@ private:
 	// checks if a formula causes circular dependencies to occur
 	bool checkCircularity(const QString & lhs, 
 					const QSet<QString> & indices_rhs);
-	bool checkCircularityHelper(const QString & lhs, const QString & index,
+	bool checkCircularityHelper(const QString & lhs,
 	const QSet<QString> & depends_on);
 	// updates dependent values
 	void updateDependentValues(const QString & index);

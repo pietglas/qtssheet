@@ -64,6 +64,8 @@ bool SSModel::setData(const QModelIndex & index,
 		else
 			val = qMakePair(value, empty_formula);
 		data_.insert(strindex, val);
+		// update dependent data
+		updateDependentValues(strindex);
 
 		return true;
 	}	
@@ -152,14 +154,12 @@ bool SSModel::setFormula(const QString & formula) {
 	Tokenizer tokenizer;
 	if (tokenizer.tokenize(formula)) {	// turn string into vector of tokens
 		QSet<QString> indices = tokenizer.validate();
-		qDebug() << indices;
 		if (!indices.empty()) {	// check for correct syntax
 			// update existing formula or add a new one
 			QString key = tokenizer.tokenized()[0];
 
 			// check for circularity
 			if (!checkCircularity(key, indices)) {
-				qDebug() << "formula does not cause circular dependencies";
 				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
 				// get formula without lhs
 				QString without_lhs;
@@ -175,8 +175,12 @@ bool SSModel::setFormula(const QString & formula) {
 				auto formula_ptr = std::make_shared<Expression>(tokens);
 				double val = SSModel::calculateFormula(formula_ptr);
 				QPair<QVariant, QString> value = qMakePair(val, without_lhs);
-
 				data_.insert(key, value);
+
+				// update depending cells
+				for (auto index : indices) 
+					has_effect_on_[index].insert(key);
+				updateDependentValues(key);
 				
 				return true;
 			}
@@ -191,9 +195,9 @@ double SSModel::calculateFormula(std::shared_ptr<Expression> formula) {
 	if (formula->lhs() == nullptr) {
 		bool ok;
 		double try_conv = formula->token().toDouble(&ok);
-		if (ok)
+		if (ok)	// in case of a number
 			return try_conv;
-		else
+		else	// in case of an index
 			return data_[formula->token()].first.toDouble();
 	}
 	else {
@@ -236,27 +240,38 @@ bool SSModel::checkCircularity(const QString & lhs,
 					const QSet<QString> & indices_rhs) {
 	QMap<QString, QSet<QString>> new_depends = depends_on_;
 	new_depends.insert(lhs, indices_rhs);
-	if (!SSModel::checkCircularityHelper(lhs, lhs, indices_rhs)) {
+	if (!SSModel::checkCircularityHelper(lhs, indices_rhs)) {
 		depends_on_ = new_depends;
 		return false;
 	}
 	return true;
 }
 
-bool SSModel::checkCircularityHelper(const QString & lhs, const QString & index,
+bool SSModel::checkCircularityHelper(const QString & lhs,
 	const QSet<QString> & depends_on) {
 	// see if current index depends on lhs
 	if (depends_on.contains(lhs))
 		return true;
 	for (auto ind : depends_on) {
-		if (SSModel::checkCircularityHelper(lhs, ind, depends_on_[ind]))
+		if (SSModel::checkCircularityHelper(lhs, depends_on_[ind]))
 			return true;
 	}
 	return false;
 }
 
 void SSModel::updateDependentValues(const QString & index) {
-
+	for (auto ind : has_effect_on_[index]) {
+		// need to go through the tokenize proces again :/
+		QString formula = ind + " = " + data_[ind].second;
+		Tokenizer tokenizer;
+		tokenizer.tokenize(formula);
+		QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
+		auto formula_ptr = std::make_shared<Expression>(tokens);
+		double val = SSModel::calculateFormula(formula_ptr);
+		data_[ind].first = val;
+		// update values depending on the value we just updated
+		SSModel::updateDependentValues(ind);
+	}
 }
 
 
