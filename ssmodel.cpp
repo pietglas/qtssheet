@@ -57,8 +57,8 @@ bool SSModel::setData(const QModelIndex & index,
 		// save value from editor to model
 		QPair<int, int> normindex = qMakePair(index.row(), index.column());
 		QString strindex = convertIndexToStr(normindex);
-		QString empty_formula;
-		QPair<QVariant, QString> val;
+		QVector<QString> empty_formula;
+		QPair<QVariant, QVector<QString>> val;
 		if (is_double) 
 			val = qMakePair(dvalue, empty_formula);
 		else
@@ -91,15 +91,11 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 		QString separator;
 		QString formula;
 		QString data;
-		bool has_formula = true;
 		while (!input.atEnd()) {
+			bool has_formula = true;
 			input >> index >> separator;
-			qDebug() << index;
-			qDebug() << separator;
 			if (separator == ":")
 				has_formula = false;
-			else
-				has_formula = true;
 			// set the data
 			if (has_formula) {
 				formula = input.readLine();
@@ -108,8 +104,8 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 			}
 			else {
 				input >> data;
-				QPair<QVariant,QString> single_value;
-				QString empty_formula;
+				QPair<QVariant,QVector<QString>> single_value;
+				QVector<QString> empty_formula;
 				bool ok;
 				double val = data.toDouble(&ok);
 				if (ok)
@@ -133,13 +129,17 @@ bool SSModel::saveData(const QString & file_name) const {
 		auto it = data_.begin();
 		while (it != data_.end()) {
 			if (it.value().first != "") {
-				if (it.value().second == "") {
+				if (it.value().second.empty()) {	// if no formula
 					output << it.key() << " : " << 
 					it.value().first.toString() << "\n";
 				}
 				else {
+					// convert formula to string
+					QString rhs;
+					for (auto token : it.value().second)
+						rhs += token;	
 					output << it.key() << " = " << 
-					it.value().second << "\n";
+					rhs << "\n";
 				}
 			}
 			++it;
@@ -161,20 +161,11 @@ bool SSModel::setFormula(const QString & formula) {
 			// check for circularity
 			if (!checkCircularity(key, indices)) {
 				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
-				// get formula without lhs
-				QString without_lhs;
-				int pos = 0;
-				while (formula[pos] != '=')
-					++pos;
-				++pos;
-				while (formula[pos] == ' ')
-					++pos;
-				without_lhs = formula.mid(pos, -1);
 
 				// set data displayed
 				auto formula_ptr = std::make_shared<Expression>(tokens);
 				double val = SSModel::calculateFormula(formula_ptr);
-				QPair<QVariant, QString> value = qMakePair(val, without_lhs);
+				QPair<QVariant, QVector<QString>> value = qMakePair(val, tokens);
 				data_.insert(key, value);
 
 				// update depending cells
@@ -259,11 +250,8 @@ bool SSModel::checkCircularityHelper(const QString & lhs,
 
 void SSModel::updateDependentValues(const QString & index) {
 	for (auto ind : has_effect_on_[index]) {
-		// need to go through the tokenize proces again :/
-		QString formula = ind + " = " + data_[ind].second;
-		Tokenizer tokenizer;
-		tokenizer.tokenize(formula);
-		QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
+		// calculate the formula 
+		QVector<QString> tokens = data_[ind].second;
 		auto formula_ptr = std::make_shared<Expression>(tokens);
 		double val = SSModel::calculateFormula(formula_ptr);
 		data_[ind].first = val;

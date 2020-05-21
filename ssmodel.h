@@ -52,7 +52,7 @@ public:
 private:
 	int rows_;
 	int cols_;
-	QMap<QString, QPair<QVariant,QString>> data_;
+	QMap<QString, QPair<QVariant,QVector<QString>>> data_;
 	QMap<QString, QSet<QString>> depends_on_;
 	QMap<QString, QSet<QString>> has_effect_on_;
 	QString alph_ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";	// for column index
