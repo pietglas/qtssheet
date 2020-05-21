@@ -34,10 +34,6 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	// create actions, set up menu bar
 	createActions();
 	setupMenuBar();
-	
-	statusBar();		// Doesn't work yet
-	connect(sheetview_, &SSView::getSelectedIndex, 
-			this, &SSWindow::showFormula);
 }
 
 SSWindow::~SSWindow() {
@@ -93,9 +89,6 @@ void SSWindow::addFormula() {
 	}
 }
 
-void SSWindow::showFormula() {
-	statusBar()->showMessage("1000");	// Doesn't work yet
-}
 
 void SSWindow::createActions() {
 	clear_ = new QAction(tr("Clear"), this);

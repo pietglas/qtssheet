@@ -36,7 +36,6 @@ public slots:
 	void clear();
 	void showWindowTitle(const QString & title);
 	void addFormula();
-	void showFormula();	// Doesn't work yet
 protected:
 	void setupMenuBar();
 	void createActions();

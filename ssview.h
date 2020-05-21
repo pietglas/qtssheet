@@ -12,6 +12,4 @@ class SSView : public QTableView {
 	Q_OBJECT
 public:
 	SSView(QWidget * parent = nullptr);
-signals:
-	QModelIndexList getSelectedIndex();	// for displaying cell info in statusbar
 };
