@@ -1,8 +1,7 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - saved formula should be tokenized, for efficiency
- * - update dependencies when loading data from file
+ * - 
  */
 
 #pragma once
