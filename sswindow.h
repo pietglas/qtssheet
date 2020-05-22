@@ -35,7 +35,7 @@ public slots:
 	void saveToFile();
 	void save();	
 	void clear();
-	void showWindowTitle(const QString & title);
+	void showWindowTitle();
 	void addFormula();
 	void updateStatus(const QString & formula);
 protected:

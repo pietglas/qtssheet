@@ -18,5 +18,6 @@ public:
 protected:
 	void currentChanged(const QModelIndex & current, const QModelIndex & previous);
 signals:
+	// sends a signal to ssmodel if another cell is selected
 	void cellSelected(const QModelIndex & current);
 };

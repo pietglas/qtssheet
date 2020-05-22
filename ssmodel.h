@@ -48,8 +48,11 @@ public:
 
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
 public slots:
+	// receives signal from ssview, which cell is currently selected
 	void getFormula(const QModelIndex & current);
 signals:
+	// sends a signal with the formula to sswindow,
+	// so it can be displayed in the statusbar
 	void sendFormula(const QString & formula);
 
 private:

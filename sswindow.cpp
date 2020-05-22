@@ -51,7 +51,7 @@ SSWindow::~SSWindow() {
 	delete add_formula_;
 }
 
-void SSWindow::showWindowTitle(const QString & title) {
+void SSWindow::showWindowTitle() {
 	setWindowTitle(tr("New File"));
 }
 
@@ -94,7 +94,8 @@ void SSWindow::addFormula() {
 }
 
 void SSWindow::updateStatus(const QString & formula) {
-	statusBar()->showMessage(formula);
+	QString message = "Formula: " + formula;
+	statusBar()->showMessage(message);
 }
 
 
@@ -111,6 +112,7 @@ void SSWindow::createActions() {
 	connect(open_, &QAction::triggered, this, &SSWindow::loadFromFile);
 
 	save_to_file_ = new QAction(tr("Save As"), this);
+	save_to_file_->setShortcut(QKeySequence(tr("Ctrl+Shift+S")));
 	connect(save_to_file_, &QAction::triggered, this, &SSWindow::saveToFile);
 
 	save_ = new QAction(tr("Save"), this);

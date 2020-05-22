@@ -173,6 +173,9 @@ bool SSModel::setFormula(const QString & formula) {
 					has_effect_on_[index].insert(key);
 				updateDependentValues(key);
 				
+				// update statusbar
+				emit sendFormula(formula);
+				
 				return true;
 			}
 		}
@@ -218,6 +221,8 @@ void SSModel::getFormula(const QModelIndex & current) {
 				formula += token;
 			emit SSModel::sendFormula(formula);
 		}
+		else
+			emit SSModel::sendFormula("");
 	}
 }
 
