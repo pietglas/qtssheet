@@ -1,7 +1,7 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - display formulae somewhere
+ * - write updateStatus() to update cell information in status bar
  * - deal properly with the case where an empty formula
  *	 is entered, or even just a number as formula. 
  */
@@ -15,6 +15,7 @@
 #include <QToolBar>
 #include <QStatusBar>
 #include <QAction>
+#include <QModelIndex>
 #include "ssview.h"
 #include "ssmodel.h"
 
@@ -36,6 +37,7 @@ public slots:
 	void clear();
 	void showWindowTitle(const QString & title);
 	void addFormula();
+	void updateStatus(const QString & formula);
 protected:
 	void setupMenuBar();
 	void createActions();

@@ -34,6 +34,10 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	// create actions, set up menu bar
 	createActions();
 	setupMenuBar();
+
+	statusBar();
+	connect(sheetview_, &SSView::cellSelected, sheetmodel_, &SSModel::getFormula);
+	connect(sheetmodel_, &SSModel::sendFormula, this, &SSWindow::updateStatus);
 }
 
 SSWindow::~SSWindow() {
@@ -87,6 +91,10 @@ void SSWindow::addFormula() {
 		error.showMessage("Invalid syntax or circular dependency");
 		error.exec();
 	}
+}
+
+void SSWindow::updateStatus(const QString & formula) {
+	statusBar()->showMessage(formula);
 }
 
 

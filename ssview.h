@@ -1,4 +1,7 @@
 /* author: Piet Glas
+ * TODO
+ * - use QAbstractItemView::currentChanged() slot for displaying cell info
+ 	 in status bar. 
  */
 #pragma once
 
@@ -12,4 +15,8 @@ class SSView : public QTableView {
 	Q_OBJECT
 public:
 	SSView(QWidget * parent = nullptr);
+protected:
+	void currentChanged(const QModelIndex & current, const QModelIndex & previous);
+signals:
+	void cellSelected(const QModelIndex & current);
 };

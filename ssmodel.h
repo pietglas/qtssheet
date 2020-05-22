@@ -47,6 +47,10 @@ public:
 	bool setFormula(const QString & formula);
 
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
+public slots:
+	void getFormula(const QModelIndex & current);
+signals:
+	void sendFormula(const QString & formula);
 
 private:
 	int rows_;

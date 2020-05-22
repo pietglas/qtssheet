@@ -208,6 +208,19 @@ double SSModel::calculateFormula(std::shared_ptr<Expression> formula) {
 	}
 }
 
+void SSModel::getFormula(const QModelIndex & current) {
+	if (current.isValid()) {
+		QPair<int, int> normindex = qMakePair(current.row(), current.column());
+		QString strindex = convertIndexToStr(normindex);
+		if (data_.contains(strindex) && !data_[strindex].second.isEmpty()) {
+			QString formula = strindex + " = ";
+			for (auto token : data_[strindex].second)
+				formula += token;
+			emit SSModel::sendFormula(formula);
+		}
+	}
+}
+
 QPair<int, int> SSModel::convertStrToIndex(const QString & index) const {
 	int col = 0;
 	while (alph_[col] != index[0]) 
