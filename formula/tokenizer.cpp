@@ -8,10 +8,12 @@ bool Tokenizer::tokenize(const QString & formula) {
 
 	int pos = 0;
 	while (pos != formula.length()) {
-		QString token;
+		QString token = "";
 		// skip whitespaces
-		if (formula[pos] == " ")
+		if (formula[pos] == " ") {
 			++pos;
+			continue;
+		}
 		else if (capitals_.find(formula[pos]) != capitals_.end()) {
 			token += formula[pos];
 			++pos;
@@ -21,31 +23,22 @@ bool Tokenizer::tokenize(const QString & formula) {
 				token += formula[pos];
 				++pos;
 			}	
-			tokenized_.push_back(token);
-			token = "";
 		}
 		else if (numbers_.find(formula[pos]) != numbers_.end()) {
 			while (numbers_.find(formula[pos]) != numbers_.end()) {
 				token += formula[pos];
 				++pos;
 			}	
-			tokenized_.push_back(token);
-			token = "";
 		}
-		else if (punctuations_.find(formula[pos]) != punctuations_.end()) {
+		else if (punctuations_.find(formula[pos]) != punctuations_.end() ||
+				operations_.find(formula[pos]) != operations_.end()) {
 			token = QString(formula[pos]);
-			tokenized_.push_back(token);
-			token = "";
 			++pos;
-		}
-		else if (operations_.find(formula[pos]) != operations_.end()) {
-			token = QString(formula[pos]);
-			tokenized_.push_back(token);
-			token = "";
-			++pos;
-		}
 		else
 			return false;
+
+		tokenized_.push_back(token);
+		token = "";
 	}
 	return true;
 }
