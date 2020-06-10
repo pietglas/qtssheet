@@ -69,7 +69,7 @@ private:
 	// converts displayed index (i.e. `A2`) to model index (i.e. `<1, 0>`)
 	QPair<int, int> convertStrToIndex(const QString & index) const;
 	// reverse of the previous
-	QString convertIndexToStr(const QPair<int, int> & index) const;
+	QString convertIndexToStr(const QModelIndex& index) const;
 	// calculate a formula.
 	double calculateFormula(std::shared_ptr<Expression> formula);
 	// checks if a formula causes circular dependencies to occur

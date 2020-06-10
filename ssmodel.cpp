@@ -34,8 +34,7 @@ int SSModel::columnCount(const QModelIndex & /*parent*/) const {
 }
 
 QVariant SSModel::data(const QModelIndex & index, int role) const {
-	QPair<int, int> normindex = qMakePair(index.row(), index.column());
-	QString strindex = convertIndexToStr(normindex);
+	QString strindex = convertIndexToStr(index);
 	bool index_found = data_.contains(strindex);
 	if (role == Qt::DisplayRole && index.isValid() && index_found)
 		return data_[strindex].first;
@@ -59,8 +58,7 @@ bool SSModel::setData(const QModelIndex & index,
 		bool is_double;
 		double dvalue = value.toDouble(&is_double);
 		// save value from editor to model
-		QPair<int, int> normindex = qMakePair(index.row(), index.column());
-		QString strindex = convertIndexToStr(normindex);
+		QString strindex = convertIndexToStr(index);
 		QVector<QString> empty_formula;
 		QPair<QVariant, QVector<QString>> val;
 		if (is_double) 
@@ -237,8 +235,7 @@ double SSModel::calculatePredefinedFormula(const QVector<QString>& tokens) {
 
 void SSModel::getFormula(const QModelIndex & current) {
 	if (current.isValid()) {
-		QPair<int, int> normindex = qMakePair(current.row(), current.column());
-		QString strindex = convertIndexToStr(normindex);
+		QString strindex = convertIndexToStr(current);
 		if (data_.contains(strindex) && !data_[strindex].second.isEmpty()) {
 			QString formula = strindex + " = ";
 			for (auto token : data_[strindex].second)
@@ -258,9 +255,9 @@ QPair<int, int> SSModel::convertStrToIndex(const QString & index) const {
 	return qMakePair(row, col);
 }
 
-QString SSModel::convertIndexToStr(const QPair<int, int> & index) const {
-	int row = index.first + 1;
-	int col = index.second;
+QString SSModel::convertIndexToStr(const QModelIndex& index) const {
+	int row = index.row() + 1;
+	int col = index.column();
 	QString dindex;
 	dindex += alph_[col];
 	dindex += QString::number(row);
