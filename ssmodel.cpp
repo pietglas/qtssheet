@@ -1,9 +1,13 @@
 /* author: Piet Glas
+ *
  */
 #include "ssmodel.h"
 #include "formula/tokenizer.h"
 #include "formula/expression.h"
 #include <math.h>
+#include <iostream>
+#include <algorithm>
+#include <vector>
 #include <QDebug>
 #include <QDebug>
 #include <QBrush>
@@ -151,20 +155,24 @@ bool SSModel::saveData(const QString & file_name) const {
 }
 
 bool SSModel::setFormula(const QString & formula) {
-	Tokenizer tokenizer;
-	if (tokenizer.tokenize(formula)) {	// turn string into vector of tokens
-		QSet<QString> indices = tokenizer.validate();
+	Tokenizer tokenizer(formula);
+	if (tokenizer.tokenize()) {	// turn string into vector of tokens
+		std::set<QString> indices = tokenizer.validate();
 		if (!indices.empty()) {	// check for correct syntax
 			// update existing formula or add a new one
 			QString key = tokenizer.tokenized()[0];
-
 			// check for circularity
 			if (!checkCircularity(key, indices)) {
+				double val;
 				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
-
 				// set data displayed
-				auto formula_ptr = std::make_shared<Expression>(tokens);
-				double val = SSModel::calculateFormula(formula_ptr);
+				if (tokenizer.predefined())
+					val = SSModel::calculatePredefinedFormula(tokens);
+				else {
+					auto formula_ptr = std::make_shared<Expression>(tokens);
+					val = SSModel::calculateFormula(formula_ptr);
+				}
+
 				QPair<QVariant, QVector<QString>> value = qMakePair(val, tokens);
 				data_.insert(key, value);
 
@@ -211,6 +219,22 @@ double SSModel::calculateFormula(std::shared_ptr<Expression> formula) {
 	}
 }
 
+double SSModel::calculatePredefinedFormula(const QVector<QString>& tokens) {
+	std::set<QString> indices = getIndices(tokens[2], tokens[4]);
+	if (tokens[0] == "average")
+		return getAverage(indices);
+	else if (tokens[0] == "sum")
+		return getSum(indices);
+	else if (tokens[0] == "median")
+		return getMedian(indices);
+	else if (tokens[0] == "min")
+		return getMin(indices);
+	else if (tokens[0] == "max")
+		return getMax(indices);
+	else
+		return 0;
+}
+
 void SSModel::getFormula(const QModelIndex & current) {
 	if (current.isValid()) {
 		QPair<int, int> normindex = qMakePair(current.row(), current.column());
@@ -244,8 +268,8 @@ QString SSModel::convertIndexToStr(const QPair<int, int> & index) const {
 }
 
 bool SSModel::checkCircularity(const QString & lhs, 
-					const QSet<QString> & indices_rhs) {
-	QMap<QString, QSet<QString>> new_depends = depends_on_;
+					const std::set<QString> & indices_rhs) {
+	QMap<QString, std::set<QString>> new_depends = depends_on_;
 	new_depends.insert(lhs, indices_rhs);
 	if (!SSModel::checkCircularityHelper(lhs, indices_rhs)) {
 		depends_on_ = new_depends;
@@ -255,9 +279,9 @@ bool SSModel::checkCircularity(const QString & lhs,
 }
 
 bool SSModel::checkCircularityHelper(const QString & lhs,
-	const QSet<QString> & depends_on) {
+	const std::set<QString> & depends_on) {
 	// see if current index depends on lhs
-	if (depends_on.contains(lhs))
+	if (depends_on.find(lhs) != depends_on.end())
 		return true;
 	for (auto ind : depends_on) {
 		if (SSModel::checkCircularityHelper(lhs, depends_on_[ind]))
@@ -270,12 +294,87 @@ void SSModel::updateDependentValues(const QString & index) {
 	for (auto ind : has_effect_on_[index]) {
 		// calculate the formula 
 		QVector<QString> tokens = data_[ind].second;
-		auto formula_ptr = std::make_shared<Expression>(tokens);
-		double val = SSModel::calculateFormula(formula_ptr);
+		double val;
+		if (predefined_formulas_.find(tokens[0]) != predefined_formulas_.end())
+			val = calculatePredefinedFormula(tokens);
+		else {
+			auto formula_ptr = std::make_shared<Expression>(tokens);
+			val = calculateFormula(formula_ptr);
+		}
 		data_[ind].first = val;
 		// update values depending on the value we just updated
 		SSModel::updateDependentValues(ind);
 	}
+}
+
+std::set<QString> SSModel::getIndices(const QString& index1, const QString& index2) const {
+	std::set<QString> indices;
+	QString first_column_c = QString(index1.at(0));
+	QString second_column_c = QString(index2.at(0));
+	int first_column = first_column_c.toInt();
+	int second_column = second_column_c.toInt();
+	int first_row = index1.right(index1.length() -1).toInt();
+	int second_row = index2.right(index2.length() -1).toInt();
+	for (int i = 0; i != alph_.length(); i++) {
+		if (alph_[i] == index1[0])
+			first_column = i;
+		else if (alph_[i] == index2[0])
+			second_column = i;
+	}
+	for (int i = first_column; i != second_column + 1; i++) {
+		for (int j = first_row; j != second_row + 1; j++) {
+			QString index = QString(alph_[i]) + QString::number(j);
+			indices.insert(index);
+		}
+	}
+	return indices;
+}
+
+double SSModel::getSum(const std::set<QString>& indices) {
+	double sum = 0; 
+	for (auto index : indices)
+		sum += data_[index].first.toDouble();
+	return sum;
+}
+
+double SSModel::getAverage(const std::set<QString>& indices) {
+	return getSum(indices) / indices.size();
+}
+
+double SSModel::getMedian(const std::set<QString>& indices) {
+	size_t size = indices.size();
+	std::vector<double> values;
+	values.resize(size);
+	int i = 0;
+	for (auto index : indices) {
+		values.at(i) = data_[index].first.toDouble();
+		i++;
+	}
+	std::sort(values.begin(), values.end());
+	double median;
+	if (indices.size() % 2 == 0)
+		median = (values[values.size() / 2 - 1] + values[values.size() / 2]) /2;
+	else
+		median = values[values.size() / 2];
+	return median;
+}
+
+double SSModel::getMin(const std::set<QString>& indices) {
+	double minvalue = data_[*indices.begin()].first.toDouble();
+	for (auto index: indices) {
+		if (data_[index].first.toDouble() < minvalue)
+			minvalue = data_[index].first.toDouble();
+	}
+	return minvalue;
+}
+
+double SSModel::getMax(const std::set<QString>& indices) {
+	double maxvalue = data_[*indices.begin()].first.toDouble();
+	for (auto index: indices) {
+		if (data_[index].first.toDouble() > maxvalue)
+			maxvalue = data_[index].first.toDouble();
+	}
+	return maxvalue;
 }
 
 

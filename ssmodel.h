@@ -13,7 +13,7 @@
 #include <QString>
 #include <QVector>
 #include <QPair>
-#include <QSet>
+#include <set>
 #include <QObject>
 #include <QMap>
 
@@ -59,9 +59,12 @@ private:
 	int rows_;
 	int cols_;
 	QMap<QString, QPair<QVariant,QVector<QString>>> data_;
-	QMap<QString, QSet<QString>> depends_on_;
-	QMap<QString, QSet<QString>> has_effect_on_;
+	QMap<QString, std::set<QString>> depends_on_;
+	QMap<QString, std::set<QString>> has_effect_on_;
 	QString alph_ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";	// for column index
+	std::set<QString> predefined_formulas_ {
+		"sum", "average", "median", "min", "max"
+	};
 
 	// converts displayed index (i.e. `A2`) to model index (i.e. `<1, 0>`)
 	QPair<int, int> convertStrToIndex(const QString & index) const;
@@ -70,13 +73,20 @@ private:
 	// calculate a formula.
 	double calculateFormula(std::shared_ptr<Expression> formula);
 	// checks if a formula causes circular dependencies to occur
+	double calculatePredefinedFormula(const QVector<QString>& tokens);
 	bool checkCircularity(const QString & lhs, 
-					const QSet<QString> & indices_rhs);
+					const std::set<QString> & indices_rhs);
 	bool checkCircularityHelper(const QString & lhs,
-	const QSet<QString> & depends_on);
+			const std::set<QString> & depends_on);
 	// updates dependent values
 	void updateDependentValues(const QString & index);
 
-signals:
+	std::set<QString> getIndices(const QString& index1, const QString& index2) const;
+
+	double getSum(const std::set<QString>& indices);
+	double getAverage(const std::set<QString>& indices);
+	double getMedian(const std::set<QString>& indices);
+	double getMin(const std::set<QString>& indices);
+	double getMax(const std::set<QString>& indices);
 	
 };

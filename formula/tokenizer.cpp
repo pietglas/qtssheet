@@ -1,78 +1,78 @@
 #include "tokenizer.h"
 
-Tokenizer::Tokenizer(){}
+Tokenizer::Tokenizer(QString formula) : formula_{formula} {}
 
-bool Tokenizer::tokenize(const QString & formula) {
+bool Tokenizer::tokenize() {
 	// reset tokenized_
 	tokenized_.clear();
 
 	int pos = 0;
-	while (pos != formula.length()) {
+	while (pos != formula_.length()) {
 		QString token = "";
+		std::set<QChar> category;
 		// skip whitespaces
-		if (formula[pos] == " ") {
+		if (formula_[pos] == " ") {
 			++pos;
 			continue;
 		}
-		else if (capitals_.find(formula[pos]) != capitals_.end()) {
-			token += formula[pos];
-			++pos;
-			while (numbers_.find(formula[pos]) != numbers_.end()) {
-				if (formula[pos] == '.')
-					return false;
-				token += formula[pos];
-				++pos;
-			}	
+		// find the token type
+		else if (letters_.find(formula_[pos]) != letters_.end())
+			category = letters_;
+		else if (capitals_.find(formula_[pos]) != capitals_.end()) {
+			category = capitals_;	
 		}
-		else if (numbers_.find(formula[pos]) != numbers_.end()) {
-			while (numbers_.find(formula[pos]) != numbers_.end()) {
-				token += formula[pos];
-				++pos;
-			}	
+		else if (numbers_.find(formula_[pos]) != numbers_.end()) {
+			category = numbers_;
 		}
-		else if (punctuations_.find(formula[pos]) != punctuations_.end() ||
-				operations_.find(formula[pos]) != operations_.end()) {
-			token = QString(formula[pos]);
-			++pos;
+		else if (punctuations_.find(formula_[pos]) != punctuations_.end())
+			category = punctuations_;
+		else if (operations_.find(formula_[pos]) != operations_.end())
+			category = operations_;			
 		else
 			return false;
-
+		
+		if (!getNewToken(category, token, pos))
+			return false;
 		tokenized_.push_back(token);
-		token = "";
 	}
 	return true;
 }
 
-QSet<QString> Tokenizer::validate() const { 
-	QSet<QString> indices;
-	QSet<QString> emptyset;
+std::set<QString> Tokenizer::validate() const { 
+	std::set<QString> indices;
+	std::set<QString> emptyset;
 	int leftbrace_count = 0;
 	int rightbrace_count = 0;
 	for (int pos = 0; pos != tokenized_.length(); pos++) {
 		if (pos == 0) {
-			if (soperations_.find(tokenized_[pos]) != soperations_.end())
-				return emptyset;	// operator at start of expression
+			if (capitals_.find(tokenized_[pos][0]) == capitals_.end()) 
+				return emptyset;	// formula starts with a cell index
 		}
 		if (soperations_.find(tokenized_[pos]) != soperations_.end()) {
-			if (pos == tokenized_.length() - 1)
+			if (pos == tokenized_.length() - 1) 
 				return emptyset;	// operator at end of expression
 			if (soperations_.find(tokenized_[pos + 1]) != soperations_.end() ||
-				tokenized_[pos + 1] == ")")
+					tokenized_[pos + 1] == ")") 
 				return emptyset;	// operation next to operation or )
 		}
 		else if (spunctuations_.find(tokenized_[pos]) != spunctuations_.end()) {
 			if (tokenized_[pos] == "(")
 				leftbrace_count++;
-			else
+			else if (tokenized_[pos] == ")")
 				rightbrace_count++;
 			if (rightbrace_count > leftbrace_count)
 				return emptyset;	// more right than left braces
 		}
-		else {
+		else if (predefined_formulas_.find(tokenized_[pos]) != 
+				predefined_formulas_.end()) {
+			if (tokenized_[pos + 1] != "(" || tokenized_[pos - 1] != "=")
+				return emptyset;
+		}
+		else {	// number followed by number, cellindex or predefined formula
 			if (pos != tokenized_.length() - 1) {
 				if (soperations_.find(tokenized_[pos + 1]) == soperations_.end() &&
 					spunctuations_.find(tokenized_[pos + 1]) == spunctuations_.end())
-					return emptyset; // two numbers next to each others
+					return emptyset;
 			}
 			// if the token is an index, add it to indices for later use
 			bool ok;
@@ -81,9 +81,36 @@ QSet<QString> Tokenizer::validate() const {
 				indices.insert(tokenized_[pos]);
 		}
 	}
+	
 	return indices;
 }
 
 QVector<QString> Tokenizer::tokenized() const {
 	return tokenized_;
+}
+
+bool Tokenizer::predefined() const {
+	return predefined_formula_.length() != 0;
+}
+
+QString Tokenizer::getPredefined() const {
+	return predefined_formula_;
+}
+
+bool Tokenizer::getNewToken(std::set<QChar>& category, 
+		QString& token, int& pos) {
+	while (category.find(formula_[pos]) != category.end()) {
+		token += formula_[pos];
+		++pos;
+	}
+	if (category == capitals_) {
+		category = numbers_;
+		getNewToken(category, token, pos);
+	}
+	else if (category == letters_) {
+		if (predefined_formulas_.find(token) == predefined_formulas_.end())
+			return false;
+		predefined_formula_ = *predefined_formulas_.find(token);
+	}
+	return true;
 }
