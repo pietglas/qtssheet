@@ -79,8 +79,10 @@ private:
 	// updates dependent values
 	void updateDependentValues(const QString & index);
 
+	// helper function for dealing with predefined formulas
 	std::set<QString> getIndices(const QString& index1, const QString& index2) const;
 
+	// functions to calculate predefined formulas
 	double getSum(const std::set<QString>& indices);
 	double getAverage(const std::set<QString>& indices);
 	double getMedian(const std::set<QString>& indices);

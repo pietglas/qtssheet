@@ -95,7 +95,7 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 		QString data;
 		while (!input.atEnd()) {
 			input >> index >> separator;
-			if (separator != ":") {
+			if (separator != ":") {	// by convention, ':' indicates absence formula
 				formula = input.readLine();
 				QString equation = index + " = " + formula;
 				setFormula(equation);

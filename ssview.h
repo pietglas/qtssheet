@@ -1,7 +1,6 @@
 /* author: Piet Glas
  * TODO
- * - use QAbstractItemView::currentChanged() slot for displaying cell info
- 	 in status bar. 
+ * - 
  */
 #pragma once
 
@@ -9,7 +8,7 @@
 #include <QModelIndexList>
 #include <QWidget>
 
-// Just renames the QTableView class, to make the 
+// Mostly renames the QTableView class, to make the 
 // view-model design more apparent. 
 class SSView : public QTableView {
 	Q_OBJECT

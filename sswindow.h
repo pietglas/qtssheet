@@ -1,7 +1,6 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - write updateStatus() to update cell information in status bar
  * - deal properly with the case where an empty formula
  *	 is entered, or even just a number as formula. 
  */
