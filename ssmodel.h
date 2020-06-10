@@ -66,9 +66,7 @@ private:
 		"sum", "average", "median", "min", "max"
 	};
 
-	// converts displayed index (i.e. `A2`) to model index (i.e. `<1, 0>`)
-	QPair<int, int> convertStrToIndex(const QString & index) const;
-	// reverse of the previous
+	// converts a qmodelindex into the 'displayed' index
 	QString convertIndexToStr(const QModelIndex& index) const;
 	// calculate a formula.
 	double calculateFormula(std::shared_ptr<Expression> formula);

@@ -247,14 +247,6 @@ void SSModel::getFormula(const QModelIndex & current) {
 	}
 }
 
-QPair<int, int> SSModel::convertStrToIndex(const QString & index) const {
-	int col = 0;
-	while (alph_[col] != index[0]) 
-		++col;
-	int row = index.mid(1, -1).toInt() - 1;
-	return qMakePair(row, col);
-}
-
 QString SSModel::convertIndexToStr(const QModelIndex& index) const {
 	int row = index.row() + 1;
 	int col = index.column();
