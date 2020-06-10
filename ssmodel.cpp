@@ -94,15 +94,11 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 		QString formula;
 		QString data;
 		while (!input.atEnd()) {
-			bool has_formula = true;
 			input >> index >> separator;
-			if (separator == ":")
-				has_formula = false;
-			// set the data
-			if (has_formula) {
+			if (separator != ":") {
 				formula = input.readLine();
 				QString equation = index + " = " + formula;
-				SSModel::setFormula(equation);
+				setFormula(equation);
 			}
 			else {
 				input >> data;
@@ -165,12 +161,11 @@ bool SSModel::setFormula(const QString & formula) {
 				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
 				// set data displayed
 				if (tokenizer.predefined())
-					val = SSModel::calculatePredefinedFormula(tokens);
+					val = calculatePredefinedFormula(tokens);
 				else {
 					auto formula_ptr = std::make_shared<Expression>(tokens);
-					val = SSModel::calculateFormula(formula_ptr);
+					val = calculateFormula(formula_ptr);
 				}
-
 				QPair<QVariant, QVector<QString>> value = qMakePair(val, tokens);
 				data_.insert(key, value);
 
@@ -240,10 +235,10 @@ void SSModel::getFormula(const QModelIndex & current) {
 			QString formula = strindex + " = ";
 			for (auto token : data_[strindex].second)
 				formula += token;
-			emit SSModel::sendFormula(formula);
+			emit sendFormula(formula);
 		}
 		else
-			emit SSModel::sendFormula("");
+			emit sendFormula("");
 	}
 }
 
@@ -260,7 +255,7 @@ bool SSModel::checkCircularity(const QString & lhs,
 					const std::set<QString> & indices_rhs) {
 	QMap<QString, std::set<QString>> new_depends = depends_on_;
 	new_depends.insert(lhs, indices_rhs);
-	if (!SSModel::checkCircularityHelper(lhs, indices_rhs)) {
+	if (!checkCircularityHelper(lhs, indices_rhs)) {
 		depends_on_ = new_depends;
 		return false;
 	}
@@ -273,7 +268,7 @@ bool SSModel::checkCircularityHelper(const QString & lhs,
 	if (depends_on.find(lhs) != depends_on.end())
 		return true;
 	for (auto ind : depends_on) {
-		if (SSModel::checkCircularityHelper(lhs, depends_on_[ind]))
+		if (checkCircularityHelper(lhs, depends_on_[ind]))
 			return true;
 	}
 	return false;
@@ -292,7 +287,7 @@ void SSModel::updateDependentValues(const QString & index) {
 		}
 		data_[ind].first = val;
 		// update values depending on the value we just updated
-		SSModel::updateDependentValues(ind);
+		updateDependentValues(ind);
 	}
 }
 
