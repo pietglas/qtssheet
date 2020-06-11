@@ -34,10 +34,12 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	// create actions, set up menu bar
 	createActions();
 	setupMenuBar();
+	createToolBars();
 
 	statusBar();
 	connect(sheetview_, &SSView::cellSelected, sheetmodel_, &SSModel::getFormula);
 	connect(sheetmodel_, &SSModel::sendFormula, this, &SSWindow::updateStatus);
+	connect(sheetview_, &SSView::cellSelected, this, &SSWindow::currentCell);
 }
 
 SSWindow::~SSWindow() {
@@ -82,11 +84,18 @@ void SSWindow::save() {
 }
 
 void SSWindow::addFormula() {
-	bool ok;
-	QString formula = QInputDialog::getText(this, tr("Enter Formula"),
-						tr("Enter Formula"), QLineEdit::Normal,
-						QDir::home().dirName(), &ok);
-	if (!(sheetmodel_->setFormula(formula))) {
+	QString formula;
+	QLineEdit * emitter = qobject_cast<QLineEdit *>(sender());
+	if (emitter == nullptr) {
+		bool ok;
+		formula = QInputDialog::getText(this, tr("Enter Formula"),
+							tr("Enter Formula"), QLineEdit::Normal,
+							QDir::home().dirName(), &ok);
+	}
+	else {
+		formula = formula_editor_->text();
+	}
+	if (!(sheetmodel_->setFormula(formula, current_cell_))) {
 		QErrorMessage error(this);
 		error.showMessage("Invalid syntax or circular dependency");
 		error.exec();
@@ -96,6 +105,10 @@ void SSWindow::addFormula() {
 void SSWindow::updateStatus(const QString & formula) {
 	QString message = "Formula: " + formula;
 	statusBar()->showMessage(message);
+}
+
+void SSWindow::currentCell(const QModelIndex& index) {
+	current_cell_ = index;
 }
 
 
@@ -121,6 +134,16 @@ void SSWindow::createActions() {
 
 	add_formula_ = new QAction(tr("Add Formula"), this);
 	connect(add_formula_, &QAction::triggered, this, &SSWindow::addFormula);
+}
+
+void SSWindow::createToolBars() {
+	// add a toolbar for editing formulas
+	formula_toolbar_ = new QToolBar(this);
+	addToolBar(formula_toolbar_);
+	formula_editor_ = new QLineEdit(formula_toolbar_);
+	formula_toolbar_->addWidget(formula_editor_);
+	connect(formula_editor_, &QLineEdit::editingFinished, 
+		this, &SSWindow::addFormula);
 }
 
 void SSWindow::setupMenuBar() {

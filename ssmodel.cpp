@@ -34,7 +34,7 @@ int SSModel::columnCount(const QModelIndex & /*parent*/) const {
 }
 
 QVariant SSModel::data(const QModelIndex & index, int role) const {
-	QString strindex = convertIndexToStr(index);
+	QString strindex = convertIndexToString(index);
 	bool index_found = data_.contains(strindex);
 	if (role == Qt::DisplayRole && index.isValid() && index_found)
 		return data_[strindex].first;
@@ -58,7 +58,7 @@ bool SSModel::setData(const QModelIndex & index,
 		bool is_double;
 		double dvalue = value.toDouble(&is_double);
 		// save value from editor to model
-		QString strindex = convertIndexToStr(index);
+		QString strindex = convertIndexToString(index);
 		QVector<QString> empty_formula;
 		QPair<QVariant, QVector<QString>> val;
 		if (is_double) 
@@ -97,8 +97,8 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 			input >> index >> separator;
 			if (separator != ":") {	// by convention, ':' indicates absence formula
 				formula = input.readLine();
-				QString equation = index + " = " + formula;
-				setFormula(equation);
+				QModelIndex qindex = convertStringToIndex(index);
+				setFormula(formula, qindex);
 			}
 			else {
 				input >> data;
@@ -148,17 +148,17 @@ bool SSModel::saveData(const QString & file_name) const {
 	return false;
 }
 
-bool SSModel::setFormula(const QString & formula) {
+bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
 	Tokenizer tokenizer(formula);
 	if (tokenizer.tokenize()) {	// turn string into vector of tokens
 		std::set<QString> indices = tokenizer.validate();
 		if (!indices.empty()) {	// check for correct syntax
 			// update existing formula or add a new one
-			QString key = tokenizer.tokenized()[0];
+			QString key = convertIndexToString(index);
 			// check for circularity
 			if (!checkCircularity(key, indices)) {
 				double val;
-				QVector<QString> tokens = tokenizer.tokenized().mid(2, -1);
+				QVector<QString> tokens = tokenizer.tokenized();
 				// set data displayed
 				if (tokenizer.predefined())
 					val = calculatePredefinedFormula(tokens);
@@ -230,7 +230,7 @@ double SSModel::calculatePredefinedFormula(const QVector<QString>& tokens) {
 
 void SSModel::getFormula(const QModelIndex & current) {
 	if (current.isValid()) {
-		QString strindex = convertIndexToStr(current);
+		QString strindex = convertIndexToString(current);
 		if (data_.contains(strindex) && !data_[strindex].second.isEmpty()) {
 			QString formula = strindex + " = ";
 			for (auto token : data_[strindex].second)
@@ -242,13 +242,22 @@ void SSModel::getFormula(const QModelIndex & current) {
 	}
 }
 
-QString SSModel::convertIndexToStr(const QModelIndex& index) const {
+QString SSModel::convertIndexToString(const QModelIndex& index) const {
 	int row = index.row() + 1;
 	int col = index.column();
 	QString dindex;
 	dindex += alph_[col];
 	dindex += QString::number(row);
 	return dindex;
+}
+
+QModelIndex SSModel::convertStringToIndex(const QString& index) const {
+	int column = 0;
+	while (index[0] != alph_[column])
+		column++;
+	int row = index.right(index.length() - 1).toInt();
+	QModelIndex qindex = this->index(row, column);
+	return qindex;
 }
 
 bool SSModel::checkCircularity(const QString & lhs, 

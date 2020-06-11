@@ -44,7 +44,7 @@ public:
 	// Save data in a .txt file. 
 	bool saveData(const QString & file_name) const;
 	// Add a formula.
-	bool setFormula(const QString & formula);
+	bool setFormula(const QString & formula, const QModelIndex& index);
 
 	Qt::ItemFlags flags(const QModelIndex & index) const override;
 public slots:
@@ -66,8 +66,9 @@ private:
 		"sum", "average", "median", "min", "max"
 	};
 
-	// converts a qmodelindex into the 'displayed' index
-	QString convertIndexToStr(const QModelIndex& index) const;
+	// converts a qmodelindex into the 'displayed' index, and vice versa
+	QString convertIndexToString(const QModelIndex& index) const;
+	QModelIndex convertStringToIndex(const QString& index) const;
 	// calculate a formula.
 	double calculateFormula(std::shared_ptr<Expression> formula);
 	// checks if a formula causes circular dependencies to occur

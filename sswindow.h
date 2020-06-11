@@ -37,13 +37,18 @@ public slots:
 	void showWindowTitle();
 	void addFormula();
 	void updateStatus(const QString & formula);
+	void currentCell(const QModelIndex& index);
 protected:
 	void setupMenuBar();
 	void createActions();
+	void createToolBars();
 private:
+	QModelIndex current_cell_;
 	QString file_name_;
 	SSView * sheetview_;
 	SSModel * sheetmodel_;
+	QToolBar * formula_toolbar_;
+	QLineEdit * formula_editor_;
 	QAction * open_;
 	QAction * save_to_file_;
 	QAction * save_;
