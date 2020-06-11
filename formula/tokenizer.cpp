@@ -47,26 +47,36 @@ std::set<QString> Tokenizer::validate() const {
 	std::set<QString> emptyset;
 	int leftbrace_count = 0;
 	int rightbrace_count = 0;
-	for (int pos = 0; pos != tokenized_.length(); pos++) {
+	int end = tokenized_.length() - 1;
+	for (int pos = 0; pos != end + 1; pos++) {
 		if (misc::soperations.find(tokenized_[pos]) != 
 			misc::soperations.end()) {
-			if (pos == tokenized_.length() - 1) {
-				// qDebug() << "operator at end of expression";
-				return emptyset;	// operator at end of expression
-			}
-			if (misc::soperations.find(tokenized_[pos + 1]) != 
+			// invalid if two operators are adjecent, operator precedes
+			// ')', or operator is at begin or end of the expression
+			if (pos == end || pos == 0 ||
+				misc::soperations.find(tokenized_[pos + 1]) != 
 					misc::soperations.end() ||
 					tokenized_[pos + 1] == ")") {
-				// qDebug() << "operator next to operator or ')'";
-				return emptyset;	// operation next to operation or )
+				// qDebug() << "operator at end of expression";
+				return emptyset;	
 			}
 		}
 		else if (misc::spunctuations.find(tokenized_[pos]) != 
 				misc::spunctuations.end()) {
-			if (tokenized_[pos] == "(")
+			if (tokenized_[pos] == "(") {
+				if (pos != 0) {
+					if (numberOrIndex(pos - 1))
+						return emptyset;	// '(' following number
+				}
 				leftbrace_count++;
-			else if (tokenized_[pos] == ")")
+			}
+			else if (tokenized_[pos] == ")") {
+				if (pos != end) {
+					if (numberOrIndex(pos + 1))
+						return emptyset;	// number following ')'
+				}
 				rightbrace_count++;
+			}
 			if (rightbrace_count > leftbrace_count) {
 				// qDebug() << "more right than left braces";
 				return emptyset;	// more right than left braces
@@ -74,19 +84,16 @@ std::set<QString> Tokenizer::validate() const {
 		}
 		else if (misc::predef_formulas.find(tokenized_[pos]) != 
 				misc::predef_formulas.end()) {
-			if (tokenized_[pos + 1] != "(") {
+			if (tokenized_[pos + 1] != "(" || pos != 0) {
 				// qDebug() << "predef formula not followed by '('";
-				return emptyset;
+				return emptyset;	// formula not at begin, or followed by '('
 			}
 		}
-		else {	// number followed by number, cellindex or predefined formula
-			if (pos != tokenized_.length() - 1) {
-				if (misc::soperations.find(tokenized_[pos + 1]) == 
-					misc::soperations.end() &&
-					misc::spunctuations.find(tokenized_[pos + 1]) == 
-					misc::spunctuations.end()) {
+		else {	// number or cellindex
+			if (pos != end) {
+				if (numberOrIndex(pos + 1)) {
 					// qDebug() << "number followed by number, index or predef form";
-					return emptyset;
+					return emptyset;	// number followed by number or cellindex
 				}
 			}
 			// if the token is an index, add it to indices for later use
@@ -96,7 +103,6 @@ std::set<QString> Tokenizer::validate() const {
 				indices.insert(tokenized_[pos]);
 		}
 	}
-	
 	return indices;
 }
 
@@ -130,4 +136,13 @@ bool Tokenizer::getNewToken(std::set<QChar>& category,
 		predefined_formula_ = *misc::predef_formulas.find(token);
 	}
 	return true;
+}
+
+bool Tokenizer::numberOrIndex(int pos) const {
+	return misc::soperations.find(tokenized_[pos]) ==
+		misc::soperations.end() &&
+		misc::spunctuations.find(tokenized_[pos]) ==
+		misc::soperations.end() &&
+		misc::predef_formulas.find(tokenized_[pos]) ==
+		misc::predef_formulas.end();
 }

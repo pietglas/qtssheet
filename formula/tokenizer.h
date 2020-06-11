@@ -1,6 +1,6 @@
 /* TODO:
  * - implement the validation proces with a grammer, the current approach
- * 	 doesn't prevent incorrect behaviour
+ * 	 seems prone to failures
  */
 
 #pragma once
@@ -22,7 +22,7 @@ public:
 	// contains invalid tokens. 
 	bool tokenize();
 	// check if the formula is syntactically valid. Returns a vector
-	// with the indexes on rhs if the formula is valid, otherwise it
+	// with the indices if the formula is valid, otherwise it
 	// returns an empty vector. 
 	std::set<QString> validate() const;
 	// returns the vector with tokens.
@@ -35,4 +35,5 @@ private:
 	QVector<QString> tokenized_;
 
 	bool getNewToken(std::set<QChar>& category, QString& token, int& pos);
+	bool numberOrIndex(int pos) const;
 };
