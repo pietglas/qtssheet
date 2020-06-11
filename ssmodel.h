@@ -7,6 +7,8 @@
 #pragma once
 
 #include "formula/expression.h"
+#include "formula/tokenizer.h"
+#include "formula/common_collections_methods.h"
 
 #include <QAbstractTableModel>
 #include <QVariant>
@@ -61,10 +63,6 @@ private:
 	QMap<QString, QPair<QVariant,QVector<QString>>> data_;
 	QMap<QString, std::set<QString>> depends_on_;
 	QMap<QString, std::set<QString>> has_effect_on_;
-	QString alph_ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";	// for column index
-	std::set<QString> predefined_formulas_ {
-		"sum", "average", "median", "min", "max"
-	};
 
 	// converts a qmodelindex into the 'displayed' index, and vice versa
 	QString convertIndexToString(const QModelIndex& index) const;

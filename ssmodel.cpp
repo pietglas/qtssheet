@@ -2,8 +2,7 @@
  *
  */
 #include "ssmodel.h"
-#include "formula/tokenizer.h"
-#include "formula/expression.h"
+
 #include <math.h>
 #include <iostream>
 #include <algorithm>
@@ -44,7 +43,7 @@ QVariant SSModel::data(const QModelIndex & index, int role) const {
 QVariant SSModel::headerData(int section, Qt::Orientation orientation,
 						int role) const {
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
-		return QString(alph_[section]);
+		return QString(misc::alphabet[section]);
 	}
 	if (role == Qt::DisplayRole && orientation == Qt::Vertical) {
 		return section + 1;
@@ -149,6 +148,12 @@ bool SSModel::saveData(const QString & file_name) const {
 }
 
 bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
+	// check if a formula was entered. If not, simply modify data
+	if (formula[0] != '=') {
+		setData(index, formula, Qt::EditRole);
+		return true;
+	}
+	// continue if a formula was entered
 	Tokenizer tokenizer(formula);
 	if (tokenizer.tokenize()) {	// turn string into vector of tokens
 		std::set<QString> indices = tokenizer.validate();
@@ -246,14 +251,14 @@ QString SSModel::convertIndexToString(const QModelIndex& index) const {
 	int row = index.row() + 1;
 	int col = index.column();
 	QString dindex;
-	dindex += alph_[col];
+	dindex += misc::alphabet[col];
 	dindex += QString::number(row);
 	return dindex;
 }
 
 QModelIndex SSModel::convertStringToIndex(const QString& index) const {
 	int column = 0;
-	while (index[0] != alph_[column])
+	while (index[0] != misc::alphabet[column])
 		column++;
 	int row = index.right(index.length() - 1).toInt();
 	QModelIndex qindex = this->index(row, column);
@@ -288,7 +293,7 @@ void SSModel::updateDependentValues(const QString & index) {
 		// calculate the formula 
 		QVector<QString> tokens = data_[ind].second;
 		double val;
-		if (predefined_formulas_.find(tokens[0]) != predefined_formulas_.end())
+		if (misc::predef_formulas.find(tokens[0]) != misc::predef_formulas.end())
 			val = calculatePredefinedFormula(tokens);
 		else {
 			auto formula_ptr = std::make_shared<Expression>(tokens);
@@ -308,15 +313,15 @@ std::set<QString> SSModel::getIndices(const QString& index1, const QString& inde
 	int second_column = second_column_c.toInt();
 	int first_row = index1.right(index1.length() -1).toInt();
 	int second_row = index2.right(index2.length() -1).toInt();
-	for (int i = 0; i != alph_.length(); i++) {
-		if (alph_[i] == index1[0])
+	for (int i = 0; i != misc::alphabet.length(); i++) {
+		if (misc::alphabet[i] == index1[0])
 			first_column = i;
-		else if (alph_[i] == index2[0])
+		else if (misc::alphabet[i] == index2[0])
 			second_column = i;
 	}
 	for (int i = first_column; i != second_column + 1; i++) {
 		for (int j = first_row; j != second_row + 1; j++) {
-			QString index = QString(alph_[i]) + QString::number(j);
+			QString index = QString(misc::alphabet[i]) + QString::number(j);
 			indices.insert(index);
 		}
 	}
