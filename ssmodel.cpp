@@ -157,6 +157,10 @@ bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
 	Tokenizer tokenizer(formula);
 	if (tokenizer.tokenize()) {	// turn string into vector of tokens
 		std::set<QString> indices = tokenizer.validate();
+
+		// for (auto ind : indices)
+		// 	qDebug() << "indices: " << ind;
+
 		if (!indices.empty()) {	// check for correct syntax
 			// update existing formula or add a new one
 			QString key = convertIndexToString(index);
@@ -164,6 +168,9 @@ bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
 			if (!checkCircularity(key, indices)) {
 				double val;
 				QVector<QString> tokens = tokenizer.tokenized();
+
+				// qDebug() << "tokenized formula: " << tokens;
+
 				// set data displayed
 				if (tokenizer.predefined())
 					val = calculatePredefinedFormula(tokens);
