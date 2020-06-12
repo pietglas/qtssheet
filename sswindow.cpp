@@ -40,6 +40,7 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	connect(sheetview_, &SSView::cellSelected, sheetmodel_, &SSModel::getFormula);
 	connect(sheetmodel_, &SSModel::sendFormula, this, &SSWindow::updateStatus);
 	connect(sheetview_, &SSView::cellSelected, this, &SSWindow::currentCell);
+	connect(this, &SSWindow::setLabel, cell_label_, &QLabel::setText);
 }
 
 SSWindow::~SSWindow() {
@@ -51,6 +52,8 @@ SSWindow::~SSWindow() {
 	delete clear_;
 	delete exit_;
 	delete add_formula_;
+	delete formula_editor_;	// actually, toolbar is responsible for this
+	delete formula_toolbar_;
 }
 
 void SSWindow::showWindowTitle() {
@@ -108,7 +111,8 @@ void SSWindow::updateStatus(const QString & formula) {
 }
 
 void SSWindow::currentCell(const QModelIndex& index) {
-	current_cell_ = index;
+	current_cell_ = sheetmodel_->convertIndexToString(index);
+	emit setLabel(current_cell_);
 }
 
 
@@ -140,6 +144,8 @@ void SSWindow::createToolBars() {
 	// add a toolbar for editing formulas
 	formula_toolbar_ = new QToolBar(this);
 	addToolBar(formula_toolbar_);
+	cell_label_ = new QLabel(formula_toolbar_);
+	formula_toolbar_->addWidget(cell_label_);
 	formula_editor_ = new QLineEdit(formula_toolbar_);
 	formula_toolbar_->addWidget(formula_editor_);
 	connect(formula_editor_, &QLineEdit::editingFinished, 

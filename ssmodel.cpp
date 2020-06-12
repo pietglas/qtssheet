@@ -96,8 +96,7 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 			input >> index >> separator;
 			if (separator != ":") {	// by convention, ':' indicates absence formula
 				formula = input.readLine();
-				QModelIndex qindex = convertStringToIndex(index);
-				setFormula(formula, qindex);
+				setFormula(formula, index);
 			}
 			else {
 				input >> data;
@@ -147,9 +146,10 @@ bool SSModel::saveData(const QString & file_name) const {
 	return false;
 }
 
-bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
+bool SSModel::setFormula(const QString & formula, const QString& key) {
 	// check if a formula was entered. If not, simply modify data
 	if (formula[0] != '=') {
+		QModelIndex index = convertStringToIndex(key);
 		setData(index, formula, Qt::EditRole);
 		return true;
 	}
@@ -162,8 +162,6 @@ bool SSModel::setFormula(const QString & formula, const QModelIndex& index) {
 		// 	qDebug() << "indices: " << ind;
 
 		if (!indices.empty()) {	// check for correct syntax
-			// update existing formula or add a new one
-			QString key = convertIndexToString(index);
 			// check for circularity
 			if (!checkCircularity(key, indices)) {
 				double val;

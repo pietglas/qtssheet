@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QString>
 #include <QWidget>
+#include <QLabel>
 #include <QToolBar>
 #include <QStatusBar>
 #include <QAction>
@@ -38,17 +39,23 @@ public slots:
 	void addFormula();
 	void updateStatus(const QString & formula);
 	void currentCell(const QModelIndex& index);
+signals:
+	void setLabel(const QString& index);
 protected:
 	void setupMenuBar();
 	void createActions();
 	void createToolBars();
 private:
-	QModelIndex current_cell_;
+	QString current_cell_;
 	QString file_name_;
+
 	SSView * sheetview_;
 	SSModel * sheetmodel_;
+
 	QToolBar * formula_toolbar_;
 	QLineEdit * formula_editor_;
+	QLabel * cell_label_;
+
 	QAction * open_;
 	QAction * save_to_file_;
 	QAction * save_;
