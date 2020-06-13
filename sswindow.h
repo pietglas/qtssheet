@@ -18,6 +18,7 @@
 #include <QModelIndex>
 #include "ssview.h"
 #include "ssmodel.h"
+#include "qformulaaction.h"
 
 // Sets the main window of the spreadsheet. 
 // Contains a pointer to SSView which inherits QTableView; 
@@ -55,6 +56,12 @@ private:
 	QToolBar * formula_toolbar_;
 	QLineEdit * formula_editor_;
 	QLabel * cell_label_;
+
+	QFormulaAction * sum_;
+	QFormulaAction * average_;
+	QFormulaAction * median_;
+	QFormulaAction * min_;
+	QFormulaAction * max_;
 
 	QAction * open_;
 	QAction * save_to_file_;

@@ -3,6 +3,7 @@
 #include "sswindow.h"
 #include "ssview.h"
 #include "ssmodel.h"
+#include "qformulaaction.h"
 #include <QObject>
 #include <QMenu>
 #include <QDebug>
@@ -41,6 +42,28 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	connect(sheetmodel_, &SSModel::sendFormula, this, &SSWindow::updateStatus);
 	connect(sheetview_, &SSView::cellSelected, this, &SSWindow::currentCell);
 	connect(this, &SSWindow::setLabel, cell_label_, &QLabel::setText);
+
+	// formula actions
+	connect(sum_, &QFormulaAction::triggered, 
+		sum_, &QFormulaAction::isTriggered);
+	connect(sum_, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);
+	connect(average_, &QFormulaAction::triggered, 
+		average_, &QFormulaAction::isTriggered);
+	connect(average_, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);
+	connect(median_, &QFormulaAction::triggered, 
+		median_, &QFormulaAction::isTriggered);
+	connect(median_, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);
+	connect(min_, &QFormulaAction::triggered, 
+		min_, &QFormulaAction::isTriggered);
+	connect(min_, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);
+	connect(max_, &QFormulaAction::triggered, 
+		max_, &QFormulaAction::isTriggered);
+	connect(max_, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);
 }
 
 SSWindow::~SSWindow() {
@@ -52,7 +75,8 @@ SSWindow::~SSWindow() {
 	delete clear_;
 	delete exit_;
 	delete add_formula_;
-	delete formula_editor_;	// actually, toolbar is responsible for this
+	// delete formula_editor_;	// actually, toolbar is responsible for this
+	// delete cell_label_;	// dito 
 	delete formula_toolbar_;
 }
 
@@ -138,14 +162,28 @@ void SSWindow::createActions() {
 
 	add_formula_ = new QAction(tr("Add Formula"), this);
 	connect(add_formula_, &QAction::triggered, this, &SSWindow::addFormula);
+
+	sum_ = new QFormulaAction(tr("sum"), this);
+
+	average_ = new QFormulaAction(tr("average"), this);
+
+	median_ = new QFormulaAction(tr("average"), this);
+
+	min_ = new QFormulaAction(tr("min"), this);
+
+	max_ = new QFormulaAction(tr("max"), this);
 }
 
 void SSWindow::createToolBars() {
 	// add a toolbar for editing formulas
 	formula_toolbar_ = new QToolBar(this);
 	addToolBar(formula_toolbar_);
+
+	// add cell label to the toolbar 
 	cell_label_ = new QLabel(formula_toolbar_);
-	formula_toolbar_->addWidget(cell_label_);
+	formula_toolbar_->addWidget(cell_label_);	
+
+	// add formula editor to the toolbar
 	formula_editor_ = new QLineEdit(formula_toolbar_);
 	formula_toolbar_->addWidget(formula_editor_);
 	connect(formula_editor_, &QLineEdit::editingFinished, 
@@ -160,7 +198,14 @@ void SSWindow::setupMenuBar() {
 	filemenu->addAction(save_);
 	filemenu->addAction(clear_);
 	filemenu->addAction(exit_);
-	// add formula
-	QMenu * formula_menu = menuBar()->addMenu(tr("Cell"));
-	formula_menu->addAction(add_formula_);
+	// cell menu
+	QMenu * cell_menu = menuBar()->addMenu(tr("Cell"));
+	cell_menu->addAction(add_formula_);
+	// formula menu
+	QMenu * formula_menu = menuBar()->addMenu(tr("Formula"));
+	formula_menu->addAction(sum_);
+	formula_menu->addAction(average_);
+	formula_menu->addAction(median_);
+	formula_menu->addAction(min_);
+	formula_menu->addAction(max_);
 }
