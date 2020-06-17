@@ -1,6 +1,6 @@
 Files for a simple spreadsheet in Qt. 
 
-This project is mainly there for learning purposes. As such, the real world use is very limited (yet) and there might be several bugs.
+This project is mainly there for learning purposes and in progress. As such, the functionality is still very limited and there might be several bugs.
 
 To build and run the code, clone the repository. From the command line, go to /qtssheet and run `qmake -project`. Open `qtssheet.pro` and add the line `QT += widgets`. Then run `make` from the command line, followed by `./qtssheet`.
 
@@ -15,7 +15,6 @@ Sources used:
 
 To do: 
 - Add more functionality to the formula toolbar
-- let the user know which functions are there to use
 - Add more documentation
 
 Build with Qt version 5.9.5, on platform Ubuntu 18.04
