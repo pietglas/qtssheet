@@ -15,6 +15,6 @@ Sources used:
 
 To do: 
 - Add more functionality to the formula toolbar
-- Add more documentation
+- Add Help button and corresponding documentation 
 
 Build with Qt version 5.9.5, on platform Ubuntu 18.04
