@@ -1,6 +1,7 @@
 /* TODO:
  * - if one of the formula actions is triggered, choose the 
  *   indices displayed in a smart way for user convenience
+ */
 
 #pragma once
 

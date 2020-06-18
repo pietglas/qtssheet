@@ -67,6 +67,8 @@ bool SSModel::setData(const QModelIndex & index,
 		data_.insert(strindex, val);
 		// update dependent data
 		updateDependentValues(strindex);
+		// emit signal to ssview
+		//emit dataChanged(index, index);
 
 		return true;
 	}	
@@ -147,9 +149,9 @@ bool SSModel::saveData(const QString & file_name) const {
 }
 
 bool SSModel::setFormula(const QString & formula, const QString& key) {
+	QModelIndex index = convertStringToIndex(key);
 	// check if a formula was entered. If not, simply modify data
 	if (formula[0] != '=') {
-		QModelIndex index = convertStringToIndex(key);
 		setData(index, formula, Qt::EditRole);
 		return true;
 	}
@@ -186,6 +188,8 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 				
 				// update statusbar
 				emit sendFormula(formula);
+				// update ssview
+				//emit dataChanged(index, index);
 				
 				return true;
 			}
@@ -242,7 +246,7 @@ void SSModel::getFormula(const QModelIndex & current) {
 	if (current.isValid()) {
 		QString strindex = convertIndexToString(current);
 		if (data_.contains(strindex) && !data_[strindex].second.isEmpty()) {
-			QString formula = strindex + " = ";
+			QString formula = " = ";
 			for (auto token : data_[strindex].second)
 				formula += token;
 			emit sendFormula(formula);
@@ -305,6 +309,9 @@ void SSModel::updateDependentValues(const QString & index) {
 			val = calculateFormula(formula_ptr);
 		}
 		data_[ind].first = val;
+
+		QModelIndex index = convertStringToIndex(ind);
+		//emit dataChanged(index, index);
 		// update values depending on the value we just updated
 		updateDependentValues(ind);
 	}

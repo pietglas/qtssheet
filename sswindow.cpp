@@ -20,7 +20,8 @@
 #include <QDesktopWidget>
 
 SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
-			sheetview_(new SSView(this)), sheetmodel_(new SSModel(rows, cols, this)) {
+			sheetview_(new SSView(this)), sheetmodel_(new SSModel(rows, cols, this)) 
+{
 	// set sheetview_ to be the central widget
 	setCentralWidget(sheetview_);
 
@@ -39,9 +40,10 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 
 	statusBar();
 	connect(sheetview_, &SSView::cellSelected, sheetmodel_, &SSModel::getFormula);
-	connect(sheetmodel_, &SSModel::sendFormula, this, &SSWindow::updateStatus);
 	connect(sheetview_, &SSView::cellSelected, this, &SSWindow::currentCell);
 	connect(this, &SSWindow::setLabel, cell_label_, &QLabel::setText);
+	connect(sheetmodel_, &SSModel::sendFormula, 
+		formula_editor_, &QLineEdit::setText);
 
 	// formula actions
 	connect(sum_, &QFormulaAction::triggered, 
@@ -66,7 +68,8 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 			formula_editor_, &QLineEdit::setText);
 }
 
-SSWindow::~SSWindow() {
+SSWindow::~SSWindow() 
+{
 	delete sheetview_;
 	delete sheetmodel_;
 	delete open_;
@@ -80,15 +83,18 @@ SSWindow::~SSWindow() {
 	delete formula_toolbar_;
 }
 
-void SSWindow::showWindowTitle() {
+void SSWindow::showWindowTitle() 
+{
 	setWindowTitle(tr("New File"));
 }
 
-void SSWindow::clear() {
+void SSWindow::clear() 
+{
 	sheetmodel_->clearData();
 }
 
-void SSWindow::loadFromFile() {
+void SSWindow::loadFromFile() 
+{
 	bool ok;
 	file_name_ = QInputDialog::getText(this, tr("Open File"),
 						tr("Enter File Name"), QLineEdit::Normal,
@@ -97,7 +103,8 @@ void SSWindow::loadFromFile() {
 	setWindowTitle(file_name_);
 }
 
-void SSWindow::saveToFile() {
+void SSWindow::saveToFile() 
+{
 	bool ok;
 	file_name_ = QInputDialog::getText(this, tr("Save File"),
 						tr("Enter File Name"), QLineEdit::Normal,
@@ -106,41 +113,42 @@ void SSWindow::saveToFile() {
 	setWindowTitle(file_name_);
 }
 
-void SSWindow::save() {
+void SSWindow::save() 
+{
 	sheetmodel_->saveData(file_name_);
 }
 
-void SSWindow::addFormula() {
+void SSWindow::addFormula() 
+{
 	QString formula;
 	QLineEdit * emitter = qobject_cast<QLineEdit *>(sender());
-	if (emitter == nullptr) {
+	if (emitter == nullptr) 
+	{
 		bool ok;
 		formula = QInputDialog::getText(this, tr("Enter Formula"),
 							tr("Enter Formula"), QLineEdit::Normal,
 							QDir::home().dirName(), &ok);
 	}
-	else {
+	else 
 		formula = formula_editor_->text();
-	}
-	if (!(sheetmodel_->setFormula(formula, current_cell_))) {
+	
+	if (!(sheetmodel_->setFormula(formula, current_cell_))) 
+	{
 		QErrorMessage error(this);
 		error.showMessage("Invalid syntax or circular dependency");
 		error.exec();
 	}
 }
 
-void SSWindow::updateStatus(const QString & formula) {
-	QString message = "Formula: " + formula;
-	statusBar()->showMessage(message);
-}
-
-void SSWindow::currentCell(const QModelIndex& index) {
+void SSWindow::currentCell(const QModelIndex& index) 
+{
 	current_cell_ = sheetmodel_->convertIndexToString(index);
 	emit setLabel(current_cell_);
 }
 
 
-void SSWindow::createActions() {
+void SSWindow::createActions() 
+{
 	clear_ = new QAction(tr("Clear"), this);
 	clear_->setShortcut(Qt::Key_Delete);
 	connect(clear_, &QAction::triggered, this, &SSWindow::clear);
@@ -174,7 +182,8 @@ void SSWindow::createActions() {
 	max_ = new QFormulaAction(tr("max"), this);
 }
 
-void SSWindow::createToolBars() {
+void SSWindow::createToolBars() 
+{
 	// add a toolbar for editing formulas
 	formula_toolbar_ = new QToolBar(this);
 	addToolBar(formula_toolbar_);
@@ -190,7 +199,8 @@ void SSWindow::createToolBars() {
 		this, &SSWindow::addFormula);
 }
 
-void SSWindow::setupMenuBar() {
+void SSWindow::setupMenuBar() 
+{
 	// file menu
 	QMenu * filemenu = menuBar()->addMenu(tr("File"));
 	filemenu->addAction(open_);

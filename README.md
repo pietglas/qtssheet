@@ -1,6 +1,6 @@
 Files for a simple spreadsheet in Qt. 
 
-This project is mainly there for learning purposes and in progress. As such, the functionality is still very limited and there might be several bugs.
+The purpose of this project is to get more experience with C++, to familiarize myself with Qt and to have fun building something. As such, the functionality is rather limited and there might be several bugs.
 
 To build and run the code, clone the repository. From the command line, go to /qtssheet and run `qmake -project`. Open `qtssheet.pro` and add the line `QT += widgets`. Then run `make` from the command line, followed by `./qtssheet`.
 

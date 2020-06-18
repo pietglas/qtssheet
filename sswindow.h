@@ -38,7 +38,6 @@ public slots:
 	void clear();
 	void showWindowTitle();
 	void addFormula();
-	void updateStatus(const QString & formula);
 	void currentCell(const QModelIndex& index);
 signals:
 	void setLabel(const QString& index);
