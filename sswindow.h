@@ -1,8 +1,8 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - deal properly with the case where an empty formula
- *	 is entered, or even just a number as formula. 
+ * - updating dependent cells doesn't work correctly when removing
+ *   data  
  */
 
 #pragma once

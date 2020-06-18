@@ -35,8 +35,6 @@ bool Tokenizer::tokenize() {
 		if (!getNewToken(category, token, pos))
 			return false;
 
-		qDebug() << "new token: " << token;
-
 		tokenized_.push_back(token);
 	}
 	return true;
@@ -57,7 +55,6 @@ std::set<QString> Tokenizer::validate() const {
 				misc::soperations.find(tokenized_[pos + 1]) != 
 					misc::soperations.end() ||
 					tokenized_[pos + 1] == ")") {
-				// qDebug() << "operator at end of expression";
 				return emptyset;	
 			}
 		}
@@ -77,24 +74,18 @@ std::set<QString> Tokenizer::validate() const {
 				}
 				rightbrace_count++;
 			}
-			if (rightbrace_count > leftbrace_count) {
-				// qDebug() << "more right than left braces";
+			if (rightbrace_count > leftbrace_count) 
 				return emptyset;	// more right than left braces
-			}
 		}
 		else if (misc::predef_formulas.find(tokenized_[pos]) != 
 				misc::predef_formulas.end()) {
-			if (tokenized_[pos + 1] != "(" || pos != 0) {
-				// qDebug() << "predef formula not followed by '('";
-				return emptyset;	// formula not at begin, or followed by '('
-			}
+			if (tokenized_[pos + 1] != "(" || pos != 0) 
+				return emptyset;	// formula not at begin or followed by '('
 		}
 		else {	// number or cellindex
 			if (pos != end) {
-				if (numberOrIndex(pos + 1)) {
-					// qDebug() << "number followed by number, index or predef form";
-					return emptyset;	// number followed by number or cellindex
-				}
+				if (numberOrIndex(pos + 1))
+					return emptyset;	// number followed by number or index
 			}
 			// if the token is an index, add it to indices for later use
 			bool ok;
@@ -129,10 +120,8 @@ bool Tokenizer::getNewToken(std::set<QChar>& category,
 		getNewToken(category, token, pos);
 	}
 	else if (category == misc::letters) {
-		if (misc::predef_formulas.find(token) == misc::predef_formulas.end()) {
-			// qDebug() << "predef formula doesn't exist";
+		if (misc::predef_formulas.find(token) == misc::predef_formulas.end())
 			return false;
-		}
 		predefined_formula_ = *misc::predef_formulas.find(token);
 	}
 	return true;

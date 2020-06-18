@@ -1,7 +1,7 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - 
+ * - when a formula is removed, update dependencies.
  */
 
 #pragma once

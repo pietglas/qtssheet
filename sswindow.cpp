@@ -39,13 +39,15 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	createToolBars();
 
 	statusBar();
+
+	// make sure the correct info is displayed when switching cells
 	connect(sheetview_, &SSView::cellSelected, sheetmodel_, &SSModel::getFormula);
 	connect(sheetview_, &SSView::cellSelected, this, &SSWindow::currentCell);
 	connect(this, &SSWindow::setLabel, cell_label_, &QLabel::setText);
 	connect(sheetmodel_, &SSModel::sendFormula, 
 		formula_editor_, &QLineEdit::setText);
 
-	// formula actions
+	// Connect formula options from menu bar to the formula editor
 	connect(sum_, &QFormulaAction::triggered, 
 		sum_, &QFormulaAction::isTriggered);
 	connect(sum_, &QFormulaAction::formulaTriggered, 
@@ -78,8 +80,6 @@ SSWindow::~SSWindow()
 	delete clear_;
 	delete exit_;
 	delete add_formula_;
-	// delete formula_editor_;	// actually, toolbar is responsible for this
-	// delete cell_label_;	// dito 
 	delete formula_toolbar_;
 }
 
@@ -149,6 +149,7 @@ void SSWindow::currentCell(const QModelIndex& index)
 
 void SSWindow::createActions() 
 {
+	// set the file options in the menu bar
 	clear_ = new QAction(tr("Clear"), this);
 	clear_->setShortcut(Qt::Key_Delete);
 	connect(clear_, &QAction::triggered, this, &SSWindow::clear);
@@ -171,6 +172,7 @@ void SSWindow::createActions()
 	add_formula_ = new QAction(tr("Add Formula"), this);
 	connect(add_formula_, &QAction::triggered, this, &SSWindow::addFormula);
 
+	// create formula options in the menu bar
 	sum_ = new QFormulaAction(tr("sum"), this);
 
 	average_ = new QFormulaAction(tr("average"), this);
@@ -195,6 +197,8 @@ void SSWindow::createToolBars()
 	// add formula editor to the toolbar
 	formula_editor_ = new QLineEdit(formula_toolbar_);
 	formula_toolbar_->addWidget(formula_editor_);
+
+	// connect the toolbar to the model
 	connect(formula_editor_, &QLineEdit::editingFinished, 
 		this, &SSWindow::addFormula);
 }

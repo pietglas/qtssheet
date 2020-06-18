@@ -64,6 +64,17 @@ bool SSModel::setData(const QModelIndex & index,
 			val = qMakePair(dvalue, empty_formula);
 		else
 			val = qMakePair(value, empty_formula);
+
+		// if the cell contained a formula, update dependencies
+		if (data_.contains(strindex)) {
+			if (!data_[strindex].second.empty()) {
+				std::set<QString> dependencies = depends_on_[strindex];
+				depends_on_.remove(strindex);
+				for (QString dependency : dependencies)
+					has_effect_on_[dependency].erase(strindex);
+			}
+		}
+
 		data_.insert(strindex, val);
 		// update dependent data
 		updateDependentValues(strindex);
@@ -160,16 +171,11 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 	if (tokenizer.tokenize()) {	// turn string into vector of tokens
 		std::set<QString> indices = tokenizer.validate();
 
-		// for (auto ind : indices)
-		// 	qDebug() << "indices: " << ind;
-
 		if (!indices.empty()) {	// check for correct syntax
-			// check for circularity
+			// check for circularitar dependencies
 			if (!checkCircularity(key, indices)) {
 				double val;
 				QVector<QString> tokens = tokenizer.tokenized();
-
-				// qDebug() << "tokenized formula: " << tokens;
 
 				// set data displayed
 				if (tokenizer.predefined())
@@ -269,7 +275,7 @@ QModelIndex SSModel::convertStringToIndex(const QString& index) const {
 	int column = 0;
 	while (index[0] != misc::alphabet[column])
 		column++;
-	int row = index.right(index.length() - 1).toInt();
+	int row = index.right(index.length() - 1).toInt() - 1;
 	QModelIndex qindex = this->index(row, column);
 	return qindex;
 }
@@ -310,7 +316,7 @@ void SSModel::updateDependentValues(const QString & index) {
 		}
 		data_[ind].first = val;
 
-		QModelIndex index = convertStringToIndex(ind);
+		//QModelIndex index = convertStringToIndex(ind);
 		//emit dataChanged(index, index);
 		// update values depending on the value we just updated
 		updateDependentValues(ind);
