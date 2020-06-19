@@ -178,8 +178,14 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 				QVector<QString> tokens = tokenizer.tokenized();
 
 				// set data displayed
-				if (tokenizer.predefined())
+				if (tokenizer.predefined()) {
 					val = calculatePredefinedFormula(tokens);
+					auto it = indices.begin();
+					QString index1 = *it;
+					++it;
+					QString index2 = *it;
+					indices = getIndices(index1, index2);
+				}
 				else {
 					auto formula_ptr = std::make_shared<Expression>(tokens);
 					val = calculateFormula(formula_ptr);

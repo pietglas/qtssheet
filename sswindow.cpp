@@ -190,17 +190,17 @@ void SSWindow::createToolBars()
 
 void SSWindow::setupMenuBar() 
 {
-	// file menu
+	// set file menu
 	QMenu * filemenu = menuBar()->addMenu(tr("File"));
 	filemenu->addAction(open_);
 	filemenu->addAction(save_to_file_);
 	filemenu->addAction(save_);
 	filemenu->addAction(clear_);
 	filemenu->addAction(exit_);
-	// cell menu
+	// set cell menu
 	QMenu * cell_menu = menuBar()->addMenu(tr("Cell"));
 	cell_menu->addAction(add_formula_);
-	// formula menu
+	// set formula menu
 	QMenu * formula_menu = menuBar()->addMenu(tr("Formula"));
 	formula_menu->addAction(sum_);
 	formula_menu->addAction(average_);
