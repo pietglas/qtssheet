@@ -48,26 +48,11 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 		formula_editor_, &QLineEdit::setText);
 
 	// Connect formula options from menu bar to the formula editor
-	connect(sum_, &QFormulaAction::triggered, 
-		sum_, &QFormulaAction::isTriggered);
-	connect(sum_, &QFormulaAction::formulaTriggered, 
-			formula_editor_, &QLineEdit::setText);
-	connect(average_, &QFormulaAction::triggered, 
-		average_, &QFormulaAction::isTriggered);
-	connect(average_, &QFormulaAction::formulaTriggered, 
-			formula_editor_, &QLineEdit::setText);
-	connect(median_, &QFormulaAction::triggered, 
-		median_, &QFormulaAction::isTriggered);
-	connect(median_, &QFormulaAction::formulaTriggered, 
-			formula_editor_, &QLineEdit::setText);
-	connect(min_, &QFormulaAction::triggered, 
-		min_, &QFormulaAction::isTriggered);
-	connect(min_, &QFormulaAction::formulaTriggered, 
-			formula_editor_, &QLineEdit::setText);
-	connect(max_, &QFormulaAction::triggered, 
-		max_, &QFormulaAction::isTriggered);
-	connect(max_, &QFormulaAction::formulaTriggered, 
-			formula_editor_, &QLineEdit::setText);
+	connectFormulaToEditor(sum_);
+	connectFormulaToEditor(average_);
+	connectFormulaToEditor(median_);
+	connectFormulaToEditor(min_);
+	connectFormulaToEditor(max_);
 }
 
 SSWindow::~SSWindow() 
@@ -222,4 +207,15 @@ void SSWindow::setupMenuBar()
 	formula_menu->addAction(median_);
 	formula_menu->addAction(min_);
 	formula_menu->addAction(max_);
+}
+
+void SSWindow::connectFormulaToEditor(QFormulaAction *& formula)
+{
+	// Connect formula options from menu bar to the formula editor
+	connect(formula, &QFormulaAction::triggered, 
+		formula, &QFormulaAction::isTriggered);
+	connect(formula, &QFormulaAction::formulaTriggered, 
+			formula_editor_, &QLineEdit::setText);	// sets text formula editor
+	connect(formula, &QFormulaAction::triggered, 
+		formula_editor_, &QLineEdit::selectAll);	// selects the text
 }

@@ -68,4 +68,6 @@ private:
 	QAction * clear_;
 	QAction * exit_;	
 	QAction * add_formula_;
+
+	void connectFormulaToEditor(QFormulaAction *& formula);
 };
