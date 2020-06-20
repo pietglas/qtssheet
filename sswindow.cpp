@@ -46,6 +46,8 @@ SSWindow::SSWindow(int rows, int cols, QWidget * parent): QMainWindow(parent),
 	connect(this, &SSWindow::setLabel, cell_label_, &QLabel::setText);
 	connect(sheetmodel_, &SSModel::sendFormula, 
 		formula_editor_, &QLineEdit::setText);
+	// update cell when a formula is entered
+	//connect(sheetmodel_, &SSModel::updateFormulaCell, sheetview_, &SSView::update)
 
 	// Connect formula options from menu bar to the formula editor
 	connectFormulaToEditor(sum_);

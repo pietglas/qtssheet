@@ -201,7 +201,7 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 				// update statusbar
 				emit sendFormula(formula);
 				// update ssview
-				//emit dataChanged(index, index);
+				emit dataChanged(index, index);
 				
 				return true;
 			}
@@ -322,8 +322,6 @@ void SSModel::updateDependentValues(const QString & index) {
 		}
 		data_[ind].first = val;
 
-		//QModelIndex index = convertStringToIndex(ind);
-		//emit dataChanged(index, index);
 		// update values depending on the value we just updated
 		updateDependentValues(ind);
 	}
