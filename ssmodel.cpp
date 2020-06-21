@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include <iostream>
-#include <algorithm>	// for std::set_difference
+#include <algorithm>	// for std::set_difference, std::sort
 #include <vector>
 #include <QDebug>
 #include <QDebug>
@@ -324,17 +324,17 @@ void SSModel::updateDependencies(const QString& index,
 				old_depends_on.begin(), old_depends_on.end(),
 				std::inserter(new_minus_old, new_minus_old.begin()));
 
+			// remove cells that index does not depend on anymore
+			for (const QString& old_item : old_minus_new) {
+				has_effect_on_[old_item].erase(index);
+				depends_on_[index].erase(old_item);
+			}
 			// add new cells that index did not previously depend on
 			for (const QString& new_item : new_minus_old) {
 				has_effect_on_[new_item].emplace(index);
 				depends_on_[index].emplace(new_item);
 			}
 
-			// remove cells that index does not depend on anymore
-			for (const QString& old_item : old_minus_new) {
-				has_effect_on_[old_item].erase(index);
-				depends_on_[index].erase(old_item);
-			}
 			updateDependentValues(index);
 			return;
 		}
@@ -376,7 +376,17 @@ double SSModel::getSum(const std::set<QString>& indices) {
 }
 
 double SSModel::getAverage(const std::set<QString>& indices) {
-	return getSum(indices) / indices.size();
+	double sum = 0;
+	int ctr = 0; 
+	for (auto index : indices) {
+		bool ok;
+		double value = data_[index].first.toDouble(&ok);
+		if (ok) {
+			sum += value;
+			ctr++;
+		}
+	}
+	return sum / ctr;
 }
 
 double SSModel::getMedian(const std::set<QString>& indices) {
