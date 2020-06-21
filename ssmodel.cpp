@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include <iostream>
-#include <algorithm>
+#include <algorithm>	// for std::set_difference
 #include <vector>
 #include <QDebug>
 #include <QDebug>
@@ -54,17 +54,10 @@ QVariant SSModel::headerData(int section, Qt::Orientation orientation,
 bool SSModel::setData(const QModelIndex & index, 
 						const QVariant & value, int role) {
 	if (role == Qt::EditRole && index.isValid()) {
-		bool is_double;
-		double dvalue = value.toDouble(&is_double);
 		// save value from editor to model
 		QString strindex = convertIndexToString(index);
 		QVector<QString> empty_formula;
-		QPair<QVariant, QVector<QString>> val;
-		if (is_double) 
-			val = qMakePair(dvalue, empty_formula);
-		else
-			val = qMakePair(value, empty_formula);
-
+		QPair<QVariant, QVector<QString>> val = qMakePair(value, empty_formula);
 		// if the cell contained a formula, remove those dependencies
 		std::set<QString> no_dependencies;
 		updateDependencies(strindex, no_dependencies);
@@ -72,6 +65,8 @@ bool SSModel::setData(const QModelIndex & index,
 		data_.insert(strindex, val);
 		// update dependent data
 		updateDependentValues(strindex);
+		// report changed index to ssview
+		emit dataChanged(index, index);
 
 		return true;
 	}	
@@ -100,19 +95,14 @@ bool SSModel::getDataFromFile(const QString& file_name) {
 		while (!input.atEnd()) {
 			input >> index >> separator;
 			if (separator != ":") {	// by convention, ':' indicates absence formula
-				formula = input.readLine();
+				formula = "=" + input.readLine();
 				setFormula(formula, index);
 			}
 			else {
 				input >> data;
-				QPair<QVariant,QVector<QString>> single_value;
 				QVector<QString> empty_formula;
-				bool ok;
-				double val = data.toDouble(&ok);
-				if (ok)
-					single_value = qMakePair(val, empty_formula);
-				else
-					single_value = qMakePair(data, empty_formula);
+				QPair<QVariant,QVector<QString>> single_value = 
+					qMakePair(data, empty_formula);
 				data_.insert(index, single_value);
 			}
 		}
@@ -335,16 +325,18 @@ void SSModel::updateDependencies(const QString& index,
 				std::inserter(new_minus_old, new_minus_old.begin()));
 
 			// add new cells that index did not previously depend on
-			for (QString new_item : new_minus_old) {
+			for (const QString& new_item : new_minus_old) {
 				has_effect_on_[new_item].emplace(index);
 				depends_on_[index].emplace(new_item);
 			}
 
 			// remove cells that index does not depend on anymore
-			for (QString old_item : old_minus_new) {
+			for (const QString& old_item : old_minus_new) {
 				has_effect_on_[old_item].erase(index);
 				depends_on_[index].erase(old_item);
 			}
+			updateDependentValues(index);
+			return;
 		}
 	}
 	depends_on_.insert(index, depends_on);

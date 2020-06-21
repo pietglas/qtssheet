@@ -1,7 +1,10 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - 
+ * - fix bad design choice: the indexes in the model should be 
+ *   qmodelindices. Only the viewed indices in the view class
+ *   and when saving data should be strings, right now  
+ *   we make unnecessary conversions between indices.
  */
 
 #pragma once
@@ -89,7 +92,6 @@ private:
 	// update dependencies
 	void updateDependencies(const QString& index, 
 		const std::set<QString>& depends_on);
-
 	// returns all indices between index1 and index2, in the following way:
 	// - getIndices(A1:A6) returns {A1, A2, A3, A4, A5, A6}
 	// - getIndices(A1:C2) returns {A1, A2, B1, B2, C1, C2}
