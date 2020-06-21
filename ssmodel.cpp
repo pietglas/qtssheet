@@ -65,21 +65,13 @@ bool SSModel::setData(const QModelIndex & index,
 		else
 			val = qMakePair(value, empty_formula);
 
-		// if the cell contained a formula, update dependencies
-		if (data_.contains(strindex)) {
-			if (!data_[strindex].second.empty()) {
-				std::set<QString> dependencies = depends_on_[strindex];
-				depends_on_.remove(strindex);
-				for (QString dependency : dependencies)
-					has_effect_on_[dependency].erase(strindex);
-			}
-		}
+		// if the cell contained a formula, remove those dependencies
+		std::set<QString> no_dependencies;
+		updateDependencies(strindex, no_dependencies);
 
 		data_.insert(strindex, val);
 		// update dependent data
 		updateDependentValues(strindex);
-		// emit signal to ssview
-		//emit dataChanged(index, index);
 
 		return true;
 	}	
@@ -180,10 +172,10 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 				// set data displayed
 				if (tokenizer.predefined()) {
 					val = calculatePredefinedFormula(tokens);
+					// get all indices that the cell depends on
 					auto it = indices.begin();
 					QString index1 = *it;
-					++it;
-					QString index2 = *it;
+					QString index2 = *(++it);
 					indices = getIndices(index1, index2);
 				}
 				else {
@@ -194,9 +186,7 @@ bool SSModel::setFormula(const QString & formula, const QString& key) {
 				data_.insert(key, value);
 
 				// update depending cells
-				for (auto index : indices) 
-					has_effect_on_[index].insert(key);
-				updateDependentValues(key);
+				updateDependencies(key, indices);
 				
 				// update statusbar
 				emit sendFormula(formula);
@@ -325,6 +315,42 @@ void SSModel::updateDependentValues(const QString & index) {
 		// update values depending on the value we just updated
 		updateDependentValues(ind);
 	}
+}
+
+void SSModel::updateDependencies(const QString& index, 
+		const std::set<QString>& depends_on) {
+	if (data_.contains(index)) {
+		if (!data_[index].second.empty()) {
+			std::set<QString> old_minus_new;
+			std::set<QString> new_minus_old;
+			std::set<QString> old_depends_on = depends_on_[index];
+			// get set difference of old dependecies minus new dependencies
+			std::set_difference(old_depends_on.begin(), old_depends_on.end(),
+				depends_on.begin(), depends_on.end(),
+				std::inserter(old_minus_new, old_minus_new.begin()));
+
+			// get set difference of new dependencies minus old dependencies
+			std::set_difference(depends_on.begin(), depends_on.end(),
+				old_depends_on.begin(), old_depends_on.end(),
+				std::inserter(new_minus_old, new_minus_old.begin()));
+
+			// add new cells that index did not previously depend on
+			for (QString new_item : new_minus_old) {
+				has_effect_on_[new_item].emplace(index);
+				depends_on_[index].emplace(new_item);
+			}
+
+			// remove cells that index does not depend on anymore
+			for (QString old_item : old_minus_new) {
+				has_effect_on_[old_item].erase(index);
+				depends_on_[index].erase(old_item);
+			}
+		}
+	}
+	depends_on_.insert(index, depends_on);
+	for (auto ind : depends_on) 
+		has_effect_on_[ind].insert(index);
+	updateDependentValues(index);
 }
 
 std::set<QString> SSModel::getIndices(const QString& index1, const QString& index2) const {

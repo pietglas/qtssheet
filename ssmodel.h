@@ -86,11 +86,15 @@ private:
 			const std::set<QString> & depends_on);
 	// updates the cells that depend on index
 	void updateDependentValues(const QString & index);
+	// update dependencies
+	void updateDependencies(const QString& index, 
+		const std::set<QString>& depends_on);
 
 	// returns all indices between index1 and index2, in the following way:
 	// - getIndices(A1:A6) returns {A1, A2, A3, A4, A5, A6}
 	// - getIndices(A1:C2) returns {A1, A2, B1, B2, C1, C2}
-	std::set<QString> getIndices(const QString& index1, const QString& index2) const;
+	std::set<QString> getIndices(const QString& index1, 
+		const QString& index2) const;
 
 	// functions to calculate predefined formulas
 	double getSum(const std::set<QString>& indices);
