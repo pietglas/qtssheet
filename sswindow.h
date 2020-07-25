@@ -1,8 +1,7 @@
 /* Author: Piet Glas
  *
  * TODO:
- * - updating dependent cells doesn't work correctly when removing
- *   data  
+ * -   
  */
 
 #pragma once
